@@ -96,7 +96,7 @@ public class SSLDroidTunnelDetails extends Activity {
 
         private boolean hasDuplicates(int listenPort) {
             for (TunnelConfig tunnel : dbHelper.fetchAllTunnels()) {
-                if (listenPort == tunnel.listenPort) {
+                if (listenPort == tunnel.listenPort && (rowId == null || (long) rowId != tunnel.id)) {
                     error("Local port already configured in tunnel '"+ tunnel.name +"', please change...");
                     return true;
                 }
