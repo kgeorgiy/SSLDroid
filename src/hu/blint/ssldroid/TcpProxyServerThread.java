@@ -159,9 +159,9 @@ public class TcpProxyServerThread extends Thread {
 
                 // relay the stuff through
                 fromBrowserToServer = new Relay(
-                        sc.getInputStream(), st.getOutputStream(), "client", sessionid);
+                        fullSessionId + "/client", sc.getInputStream(), st.getOutputStream());
                 fromServerToBrowser = new Relay(
-                        st.getInputStream(), sc.getOutputStream(), "server", sessionid);
+                        fullSessionId + "/server", st.getInputStream(), sc.getOutputStream());
 
                 fromBrowserToServer.start();
                 fromServerToBrowser.start();
