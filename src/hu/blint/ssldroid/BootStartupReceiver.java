@@ -18,7 +18,7 @@ public class BootStartupReceiver extends BroadcastReceiver {
         int tunnelcount = cursor.getCount();
         Log.d("SSLDroid", "Tunnelcount: "+tunnelcount);
         
-        //don't start if the stop status field is available
+        //don't start if the close status field is available
         if (tunnelcount != 0){
             stopped = true;
         }
@@ -37,7 +37,7 @@ public class BootStartupReceiver extends BroadcastReceiver {
             if (!isStopped(context))
                 context.startService(i);
             else
-        	Log.w("SSLDroid", "Not starting service as directed by explicit stop");
+        	Log.w("SSLDroid", "Not starting service as directed by explicit close");
         }
     }
 }

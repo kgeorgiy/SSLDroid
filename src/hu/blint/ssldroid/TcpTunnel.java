@@ -14,6 +14,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
+import java.security.cert.X509Certificate;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -22,38 +23,40 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-public class TcpProxyServerThread implements Runnable, Closeable {
+public class TcpTunnel implements Runnable, Closeable {
 
     private final TunnelConfig config;
 
     private int sessionNo = 0;
     private SSLSocketFactory sslSocketFactory;
     private final ServerSocket ss;
+    private final Thread thread;
 
-    TcpProxyServerThread(TunnelConfig config) throws IOException {
+    TcpTunnel(TunnelConfig config) throws IOException {
         this.config = config;
         ss = new ServerSocket(config.listenPort, 50);
+        Log.d("SSLDroid", "Starting tunnel: " + config + " " + ss);
+        thread = new Thread(this);
+        thread.start();
     }
 
     // Create a trust manager that does not validate certificate chains
     // TODO: handle this somehow properly (popup if cert is untrusted?)
     // TODO: cacert + crl should be configurable
-    private TrustManager[] trustAllCerts = new TrustManager[] {
-    new X509TrustManager() {
-        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-            return null;
-        }
-        public void checkClientTrusted(
-        java.security.cert.X509Certificate[] certs, String authType) {
-        }
-        public void checkServerTrusted(
-        java.security.cert.X509Certificate[] certs, String authType) {
-        }
-    }
+    private static final TrustManager[] TRUST_ALL_CERTS = new TrustManager[] {
+            new X509TrustManager() {
+                public X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {
+                }
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {
+                }
+            }
     };
 
-    private final SSLSocketFactory getSocketFactory(String pkcsFile,
-                                                    String pwd, String fullSessionId) {
+    private SSLSocketFactory getSocketFactory(String pkcsFile,
+                                              String pwd, String fullSessionId) {
         if (sslSocketFactory == null) {
             try {
                 KeyManagerFactory keyManagerFactory;
@@ -66,7 +69,7 @@ public class TcpProxyServerThread implements Runnable, Closeable {
                     keyManagerFactory = null;
                 }
                 SSLContext context = SSLContext.getInstance("TLS");
-                context.init(keyManagerFactory == null ? null : keyManagerFactory.getKeyManagers(), trustAllCerts,
+                context.init(keyManagerFactory == null ? null : keyManagerFactory.getKeyManagers(), TRUST_ALL_CERTS,
                              new SecureRandom());
                 sslSocketFactory = context.getSocketFactory();
             } catch (FileNotFoundException e) {
@@ -120,7 +123,7 @@ public class TcpProxyServerThread implements Runnable, Closeable {
         setSNIHost(sf, server, this.getTunnelHost());
         server.startHandshake();
 
-        log(fullSessionId, "Tunnelling port "
+        log(fullSessionId, "-------------------------------- Tunnelling port "
                 + ss.getLocalSocketAddress() + " to port "
                 + server.getRemoteSocketAddress() + " ...");
 
@@ -150,9 +153,17 @@ public class TcpProxyServerThread implements Runnable, Closeable {
     }
 
     @Override
-    public void close() throws IOException {
-        ss.close();
+    public void close() {
+        try {
+            //close the server socket and interrupt the server thread
+            thread.interrupt();
+            ss.close();
+        } catch (IOException e) {
+            Log.d("SSLDroid", "Interrupt failure: " + e.toString());
+        }
+        Log.d("SSLDroid", "Stopping tunnel " + config);
     }
+
 
     private String getTunnelName() {
         return config.name;

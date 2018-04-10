@@ -8,10 +8,10 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.database.Cursor;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,16 +21,16 @@ import hu.blint.ssldroid.db.SSLDroidDbAdapter;
 public class SSLDroid extends Service {
     private static final String TAG = "SSLDroid";
 
-    private List<TcpProxy> proxies = new ArrayList<TcpProxy>();
+    private List<TcpTunnel> tunnels = new ArrayList<TcpTunnel>();
 
     @Override
     public void onCreate() {
         SSLDroidDbAdapter dbHelper = new SSLDroidDbAdapter(this);
         try {
-            proxies.clear();
+            tunnels.clear();
             for (TunnelConfig config : dbHelper.fetchAllTunnels()) {
                 try {
-                    proxies.add(new TcpProxy(config));
+                    tunnels.add(new TcpTunnel(config));
                 } catch (IOException e) {
                     Log.d(TAG, "Error creating tunnel " + config + ": " + e.toString());
                     new AlertDialog.Builder(this)
@@ -39,7 +39,7 @@ public class SSLDroid extends Service {
                             .create();
                 }
             }
-            createNotification(0, true, "SSLDroid is running", "Started and serving "+ proxies.size()+" tunnels");
+            createNotification(0, true, "SSLDroid is running", "Started and serving "+ tunnels.size()+" tunnels");
         } finally {
             dbHelper.close();
         }
@@ -70,8 +70,8 @@ public class SSLDroid extends Service {
     public void onDestroy() {
         super.onDestroy();
         try {
-            for (TcpProxy proxy : proxies) {
-                proxy.stop();
+            for (TcpTunnel proxy : tunnels) {
+                proxy.close();
             }
         } catch (Exception e) {
             Log.d("SSLDroid", "Error stopping service: " + e.toString());
