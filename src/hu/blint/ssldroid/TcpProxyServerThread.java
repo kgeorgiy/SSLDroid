@@ -1,12 +1,12 @@
 package hu.blint.ssldroid;
 
+import android.util.Log;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -21,18 +21,14 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import android.util.Log;
-
-public class TcpProxyServerThread extends Thread {
+public class TcpProxyServerThread implements Runnable {
 
     String tunnelName;
     int listenPort;
     String tunnelHost;
     int tunnelPort;
     String keyFile, keyPass;
-    Relay inRelay, outRelay;
-    ServerSocket ss = null;
-    int sessionid = 0;
+    int sessionNo = 0;
     private SSLSocketFactory sslSocketFactory;
 
     public TcpProxyServerThread(String tunnelName, int listenPort, String tunnelHost, int tunnelPort, String keyFile, String keyPass) {
@@ -102,74 +98,57 @@ public class TcpProxyServerThread extends Thread {
 
     public void run() {
         try {
-            ss = new ServerSocket(listenPort, 50, InetAddress.getLocalHost());
-            Log.d("SSLDroid", "Listening for connections on "+InetAddress.getLocalHost().getHostAddress()+":"+
-                  + this.listenPort + " ...");
-        } catch (Exception e) {
-            Log.d("SSLDroid", "Error setting up listening socket: " + e.toString());
-            return;
-        }
-        while (true) {
-            String fullSessionId = tunnelName + "/" + sessionid;
-            sessionid++;
+            ServerSocket ss = new ServerSocket(listenPort, 50);
             try {
-                Thread fromBrowserToServer = null;
-                Thread fromServerToBrowser = null;
+                run(ss);
+            } finally {
+                ss.close();
+            }
+        } catch (IOException e) {
+            Log.d("SSLDroid", "Error setting up listening socket: " + e.toString());
+        }
+    }
 
-                if (isInterrupted()) {
+    private void run(ServerSocket ss) {
+        Log.d("SSLDroid", "Listening for connections on " + ss.getLocalSocketAddress() + " ...");
+        while (true) {
+            String fullSessionId = tunnelName + "/" + ++sessionNo;
+            try {
+                if (Thread.interrupted()) {
                     log(fullSessionId, "Interrupted server thread, closing sockets...");
-                    ss.close();
                     return;
                 }
                 // accept the connection from my client
-                Socket sc = null;
+                Socket client = ss.accept();
                 try {
-                    sc = ss.accept();
-                } catch (SocketException e) {
-                    log(fullSessionId, "Accept failure: " + e.toString());
-                }
-
-                Socket st = null;
-                try {
-                    final SSLSocketFactory sf = getSocketFactory(this.keyFile, this.keyPass, fullSessionId);
-                    st = (SSLSocket) sf.createSocket(this.tunnelHost, this.tunnelPort);
-                    setSNIHost(sf, (SSLSocket) st, this.tunnelHost);
-                    ((SSLSocket) st).startHandshake();
+                    run(fullSessionId, client);
                 } catch (IOException e) {
-                    log(fullSessionId, "SSL failure: " + e.toString());
-                    return;
+                    log(fullSessionId, "Error accepting client: " + e.toString());
                 }
-                catch (Exception e) {
-                    log(fullSessionId, "SSL failure: " + e.toString());
-                    if (sc != null)
-                      {
-                        sc.close();
-                      }
-                    return;
-                }
-
-                if (sc == null || st == null) {
-                    log(fullSessionId, "Trying socket operation on a null socket, returning");
-                    return;
-                }
-                log(fullSessionId, "Tunnelling port "
-                        + listenPort + " to port "
-                        + tunnelPort + " on host "
-                        + tunnelHost + " ...");
-
-                // relay the stuff through
-                fromBrowserToServer = new Relay(
-                        fullSessionId + "/client", sc.getInputStream(), st.getOutputStream());
-                fromServerToBrowser = new Relay(
-                        fullSessionId + "/server", st.getInputStream(), sc.getOutputStream());
-
-                fromBrowserToServer.start();
-                fromServerToBrowser.start();
-
             } catch (IOException ee) {
                 log(fullSessionId, "Ouch: " + ee.toString());
             }
         }
+    }
+
+    private void run(String fullSessionId, Socket client) throws IOException {
+        SSLSocketFactory sf = getSocketFactory(this.keyFile, this.keyPass, fullSessionId);
+        SSLSocket server = (SSLSocket) sf.createSocket(this.tunnelHost, this.tunnelPort);
+        setSNIHost(sf, server, this.tunnelHost);
+        server.startHandshake();
+
+        log(fullSessionId, "Tunnelling port "
+                + listenPort + " to port "
+                + tunnelPort + " on host "
+                + tunnelHost + " ...");
+
+        // relay the stuff through
+        Relay fromBrowserToServer = new Relay(
+                fullSessionId + "/client", client.getInputStream(), server.getOutputStream());
+        Relay fromServerToBrowser = new Relay(
+                fullSessionId + "/server", server.getInputStream(), client.getOutputStream());
+        new Thread(fromBrowserToServer).start();
+        new Thread(fromServerToBrowser).start();
     }
 
     private void log(String fullSessionId, String message) {
@@ -187,5 +166,5 @@ public class TcpProxyServerThread extends Thread {
             }
         }
     }
-};
+}
 
