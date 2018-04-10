@@ -12,6 +12,7 @@ import android.database.Cursor;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,30 +28,16 @@ public class SSLDroid extends Service {
         SSLDroidDbAdapter dbHelper = new SSLDroidDbAdapter(this);
         try {
             proxies.clear();
-            Cursor cursor = dbHelper.fetchAllTunnels();
-
-            try {
-                while (cursor.moveToNext()) {
-                    String tunnelName = getString(cursor, SSLDroidDbAdapter.KEY_NAME);
-                    int listenPort = getInt(cursor, SSLDroidDbAdapter.KEY_LOCALPORT);
-                    int targetPort = getInt(cursor, SSLDroidDbAdapter.KEY_REMOTEPORT);
-                    String targetHost = getString(cursor, SSLDroidDbAdapter.KEY_REMOTEHOST);
-                    String keyFile = getString(cursor, SSLDroidDbAdapter.KEY_PKCSFILE);
-                    String keyPass = getString(cursor, SSLDroidDbAdapter.KEY_PKCSPASS);
-                    try {
-                        TcpProxy proxy = new TcpProxy(tunnelName, listenPort, targetHost, targetPort, keyFile, keyPass);
-                        proxy.serve();
-                        Log.d(TAG, "Tunnel: "+tunnelName+" "+listenPort+" "+targetHost+" "+targetPort+" "+keyFile);
-                    } catch (Exception e) {
-                        Log.d(TAG, "Error:" + e.toString());
-                        new AlertDialog.Builder(SSLDroid.this)
-                                .setTitle("SSLDroid encountered a fatal error: "+e.getMessage())
-                                .setPositiveButton(android.R.string.ok, null)
-                                .create();
-                    }
+            for (TunnelConfig config : dbHelper.fetchAllTunnels()) {
+                try {
+                    proxies.add(new TcpProxy(config));
+                } catch (IOException e) {
+                    Log.d(TAG, "Error creating tunnel " + config + ": " + e.toString());
+                    new AlertDialog.Builder(this)
+                            .setTitle("SSLDroid encountered a fatal error: " + e.getMessage())
+                            .setPositiveButton(android.R.string.ok, null)
+                            .create();
                 }
-            } finally {
-                cursor.close();
             }
             createNotification(0, true, "SSLDroid is running", "Started and serving "+ proxies.size()+" tunnels");
         } finally {
@@ -67,14 +54,6 @@ public class SSLDroid extends Service {
         }
         //startup message
         Log.d(TAG, "SSLDroid Service Started; version='"+ info.versionName +"', versionname='"+info.versionCode+"'");
-    }
-
-    private int getInt(Cursor cursor, String columnName) {
-        return cursor.getInt(cursor.getColumnIndexOrThrow(columnName));
-    }
-
-    private String getString(Cursor cursor, String column) {
-        return cursor.getString(cursor.getColumnIndexOrThrow(column));
     }
 
     @Override

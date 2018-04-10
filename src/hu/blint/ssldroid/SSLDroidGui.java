@@ -2,7 +2,6 @@ package hu.blint.ssldroid;
 
 import android.app.ListActivity;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -12,17 +11,21 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import hu.blint.ssldroid.db.SSLDroidDbAdapter;
 
 public class SSLDroidGui extends ListActivity {
-    private SSLDroidDbAdapter dbHelper;
     private static final int ACTIVITY_CREATE = 0;
     private static final int ACTIVITY_EDIT = 1;
     private static final int DELETE_ID = Menu.FIRST + 1;
     private static final int CLONE_ID = Menu.FIRST + 2;
-    private Cursor cursor;
+
+    private SSLDroidDbAdapter dbHelper;
 
     /** Called when the activity is first created. */
     @Override
@@ -46,33 +49,15 @@ public class SSLDroidGui extends ListActivity {
     // Reaction to the menu selection
     @Override
     public boolean onMenuItemSelected(int featureId, MenuItem item) {
-        switch (item.getItemId()) {
-        case R.id.addtunnel:
-            createTunnel();
-            return true;
-        case R.id.stopservice:
-            Log.d("SSLDroid", "Stopping service");
-            stopService(new Intent(this, SSLDroid.class));
-            return true;
-        case R.id.stopserviceforgood:
-            Log.d("SSLDroid", "Stopping service until explicitly started");
-            dbHelper.setStopStatus();
-            stopService(new Intent(this, SSLDroid.class));
-            return true;
-        case R.id.startservice:
-            Log.d("SSLDroid", "Starting service");
-            dbHelper.delStopStatus();
-            startService(new Intent(this, SSLDroid.class));
-            return true;
-        case R.id.readlogs:
-            readLogs();
-            return true;
-        }
-        return super.onMenuItemSelected(featureId, item);
+        return onSelected(item) || super.onMenuItemSelected(featureId, item);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        return onSelected(item) || super.onOptionsItemSelected(item);
+    }
+
+    private boolean onSelected(MenuItem item) {
         switch (item.getItemId()) {
         case R.id.addtunnel:
             createTunnel();
@@ -94,26 +79,22 @@ public class SSLDroidGui extends ListActivity {
         case R.id.readlogs:
             readLogs();
             return true;
-        //case R.id.provision:
-        //    getProvisioning();
-        //    return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
-                .getMenuInfo();
-	switch (item.getItemId()) {
-        case DELETE_ID:
-            dbHelper.deleteTunnel(info.id);
-            fillData();
-            return true;
-        case CLONE_ID:
-            cloneTunnel(info.id);
-            fillData();
-            return true;
+        AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+        switch (item.getItemId()) {
+            case DELETE_ID:
+                dbHelper.deleteTunnel(info.id);
+                fillData();
+                return true;
+            case CLONE_ID:
+                cloneTunnel(info.id);
+                fillData();
+                return true;
         }
         return super.onContextItemSelected(item);
     }
@@ -135,12 +116,6 @@ public class SSLDroidGui extends ListActivity {
         startActivity(i);
     }
 
-    @SuppressWarnings("unused")
-    private void getProvisioning() {
-        //Intent i = new Intent(this, SSLDroidProvisioning.class);
-        //startActivity(i);
-    }
-    
     // ListView and view (row) on which was clicked, position and
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
@@ -164,21 +139,23 @@ public class SSLDroidGui extends ListActivity {
     }
 
     private void fillData() {
-        cursor = dbHelper.fetchAllTunnels();
-        startManagingCursor(cursor);
+        final List<String> names = new ArrayList<String>();
+        final List<Long> ids = new ArrayList<Long>();
+        for (TunnelConfig tunnel : dbHelper.fetchAllTunnels()) {
+            names.add(tunnel.name);
+            ids.add(tunnel.id);
+        }
 
-        String[] from = new String[] { SSLDroidDbAdapter.KEY_NAME };
-        int[] to = new int[] { R.id.text1 };
-
-        // Now create an array adapter and set it to display using our row
-        SimpleCursorAdapter tunnels = new SimpleCursorAdapter(this,
-                R.layout.tunnel_list_item, cursor, from, to);
-        setListAdapter(tunnels);
+        setListAdapter(new ArrayAdapter<String>(this, R.layout.tunnel_list_item, R.id.text1, names) {
+            @Override
+            public long getItemId(int position) {
+                return ids.get(position);
+            }
+        });
     }
 
     @Override
-    public void onCreateContextMenu(ContextMenu menu, View v,
-                                    ContextMenuInfo menuInfo) {
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         menu.add(0, DELETE_ID, 0, R.string.menu_delete);
         menu.add(0, CLONE_ID, 0, R.string.menu_clone);
@@ -186,9 +163,7 @@ public class SSLDroidGui extends ListActivity {
     
     @Override
     public void onDestroy (){
-	cursor.close();
 	dbHelper.close();
 	super.onDestroy();
     }
-    
 }

@@ -24,28 +24,21 @@ import javax.net.ssl.X509TrustManager;
 
 public class TcpProxyServerThread implements Runnable, Closeable {
 
-    String tunnelName;
-    String tunnelHost;
-    int tunnelPort;
-    String keyFile, keyPass;
-    int sessionNo = 0;
+    private final TunnelConfig config;
+
+    private int sessionNo = 0;
     private SSLSocketFactory sslSocketFactory;
     private final ServerSocket ss;
 
-    public TcpProxyServerThread(String tunnelName, int listenPort, String tunnelHost, int tunnelPort, String keyFile, String keyPass) throws IOException {
-        this.tunnelName = tunnelName;
-        this.tunnelHost = tunnelHost;
-        this.tunnelPort = tunnelPort;
-        this.keyFile = keyFile;
-        this.keyPass = keyPass;
-
-        ss = new ServerSocket(listenPort, 50);
+    TcpProxyServerThread(TunnelConfig config) throws IOException {
+        this.config = config;
+        ss = new ServerSocket(config.listenPort, 50);
     }
 
     // Create a trust manager that does not validate certificate chains
     // TODO: handle this somehow properly (popup if cert is untrusted?)
     // TODO: cacert + crl should be configurable
-    TrustManager[] trustAllCerts = new TrustManager[] {
+    private TrustManager[] trustAllCerts = new TrustManager[] {
     new X509TrustManager() {
         public java.security.cert.X509Certificate[] getAcceptedIssuers() {
             return null;
@@ -59,8 +52,8 @@ public class TcpProxyServerThread implements Runnable, Closeable {
     }
     };
 
-    public final SSLSocketFactory getSocketFactory(String pkcsFile,
-            String pwd, String fullSessionId) {
+    private final SSLSocketFactory getSocketFactory(String pkcsFile,
+                                                    String pwd, String fullSessionId) {
         if (sslSocketFactory == null) {
             try {
                 KeyManagerFactory keyManagerFactory;
@@ -102,7 +95,7 @@ public class TcpProxyServerThread implements Runnable, Closeable {
     public void run() {
         Log.d("SSLDroid", "Listening for connections on " + ss.getLocalSocketAddress() + " ...");
         while (true) {
-            String fullSessionId = tunnelName + "/" + ++sessionNo;
+            String fullSessionId = getTunnelName() + "/" + ++sessionNo;
             try {
                 if (Thread.interrupted()) {
                     log(fullSessionId, "Interrupted server thread, closing sockets...");
@@ -122,9 +115,9 @@ public class TcpProxyServerThread implements Runnable, Closeable {
     }
 
     private void run(String fullSessionId, Socket client) throws IOException {
-        SSLSocketFactory sf = getSocketFactory(this.keyFile, this.keyPass, fullSessionId);
-        SSLSocket server = (SSLSocket) sf.createSocket(this.tunnelHost, this.tunnelPort);
-        setSNIHost(sf, server, this.tunnelHost);
+        SSLSocketFactory sf = getSocketFactory(this.getKeyFile(), this.getKeyPass(), fullSessionId);
+        SSLSocket server = (SSLSocket) sf.createSocket(this.getTunnelHost(), this.getTunnelPort());
+        setSNIHost(sf, server, this.getTunnelHost());
         server.startHandshake();
 
         log(fullSessionId, "Tunnelling port "
@@ -159,6 +152,26 @@ public class TcpProxyServerThread implements Runnable, Closeable {
     @Override
     public void close() throws IOException {
         ss.close();
+    }
+
+    private String getTunnelName() {
+        return config.name;
+    }
+
+    private String getTunnelHost() {
+        return config.targetHost;
+    }
+
+    private int getTunnelPort() {
+        return config.targetPort;
+    }
+
+    private String getKeyFile() {
+        return config.keyFile;
+    }
+
+    private String getKeyPass() {
+        return config.keyPass;
     }
 }
 

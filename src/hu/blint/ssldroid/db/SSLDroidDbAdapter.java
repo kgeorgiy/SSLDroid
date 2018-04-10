@@ -6,6 +6,11 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import hu.blint.ssldroid.TunnelConfig;
+
 public class SSLDroidDbAdapter {
 
     // Database fields
@@ -39,31 +44,27 @@ public class SSLDroidDbAdapter {
      * Create a new tunnel If the tunnel is successfully created return the new
      * rowId for that note, otherwise return a -1 to indicate failure.
      */
-    public long createTunnel(String name, int localport, String remotehost, int remoteport,
-                             String pkcsfile, String pkcspass) {
-        ContentValues initialValues = createContentValues(name, localport, remotehost,
-                                      remoteport, pkcsfile, pkcspass);
-
-        return database.insert(DATABASE_TABLE, null, initialValues);
+    public long createTunnel(TunnelConfig tunnel) {
+        return database.insert(DATABASE_TABLE, null, saveTunnel(tunnel));
     }
 
     /**
      * Update the tunnel
      */
-    public boolean updateTunnel(long rowId, String name, int localport, String remotehost,
-                                int remoteport, String pkcsfile, String pkcspass) {
-        ContentValues updateValues = createContentValues(name, localport, remotehost,
-                                     remoteport, pkcsfile, pkcspass);
+    public void updateTunnel(TunnelConfig tunnel) {
+        database.update(DATABASE_TABLE, saveTunnel(tunnel), where(tunnel.id), null);
+    }
 
-        return database.update(DATABASE_TABLE, updateValues, KEY_ROWID + "="
-                               + rowId, null) > 0;
+    private String where(long rowId) {
+        return KEY_ROWID + "="
+                               + rowId;
     }
 
     /**
      * Deletes tunnel
      */
     public boolean deleteTunnel(long rowId) {
-        return database.delete(DATABASE_TABLE, KEY_ROWID + "=" + rowId, null) > 0;
+        return database.delete(DATABASE_TABLE, where(rowId), null) > 0;
     }
 
     /**
@@ -71,11 +72,33 @@ public class SSLDroidDbAdapter {
      *
      * @return Cursor over all notes
      */
-    public Cursor fetchAllTunnels() {
-        return database.query(DATABASE_TABLE, new String[] { KEY_ROWID,
-                              KEY_NAME, KEY_LOCALPORT, KEY_REMOTEHOST, KEY_REMOTEPORT, KEY_PKCSFILE,
-                              KEY_PKCSPASS
-                                                           }, null, null, null, null, null);
+    public List<TunnelConfig> fetchAllTunnels() {
+        final Cursor cursor = query(KEY_ROWID, KEY_NAME, KEY_LOCALPORT, KEY_REMOTEHOST, KEY_REMOTEPORT, KEY_PKCSFILE, KEY_PKCSPASS);
+        final List<TunnelConfig> tunnels = new ArrayList<TunnelConfig>();
+        try {
+            while (cursor.moveToNext()) {
+                tunnels.add(getTunnel(cursor));
+            }
+            return tunnels;
+        } finally {
+            cursor.close();
+        }
+    }
+
+    private long getLong(Cursor cursor, String columnName) {
+        return cursor.getInt(cursor.getColumnIndexOrThrow(columnName));
+    }
+
+    private int getInt(Cursor cursor, String columnName) {
+        return cursor.getInt(cursor.getColumnIndexOrThrow(columnName));
+    }
+
+    private String getString(Cursor cursor, String column) {
+        return cursor.getString(cursor.getColumnIndexOrThrow(column));
+    }
+
+    private Cursor query(String... columns) {
+        return database.query(DATABASE_TABLE, columns, null, null, null, null, null);
     }
 
     /**
@@ -84,9 +107,7 @@ public class SSLDroidDbAdapter {
      * @return Cursor over all notes
      */
     public Cursor fetchAllLocalPorts() {
-        return database.query(DATABASE_TABLE, new String[] { KEY_NAME,
-                              KEY_LOCALPORT
-                                                           }, null, null, null, null, null);
+        return query(KEY_NAME, KEY_LOCALPORT);
     }
 
     /**
@@ -116,28 +137,39 @@ public class SSLDroidDbAdapter {
         return database.delete(STATUS_TABLE, KEY_STATUS_NAME+"= 'stopped'", null) > 0;
     }
     
-    public Cursor fetchTunnel(long rowId) throws SQLException {
-        Cursor mCursor = database.query(true, DATABASE_TABLE, new String[] {
+    public TunnelConfig fetchTunnel(long rowId) throws SQLException {
+        Cursor cursor = database.query(true, DATABASE_TABLE, new String[] {
                                             KEY_ROWID, KEY_NAME, KEY_LOCALPORT, KEY_REMOTEHOST, KEY_REMOTEPORT,
                                             KEY_PKCSFILE, KEY_PKCSPASS
                                         },
-                                        KEY_ROWID + "=" + rowId, null, null, null, null, null);
-        if (mCursor != null) {
-            mCursor.moveToFirst();
+                where(rowId), null, null, null, null, null);
+        if (!cursor.moveToNext()) {
+            throw new SQLException("Tunnel id=" + rowId + " not found");
         }
-        return mCursor;
+        return getTunnel(cursor);
     }
-    
-    private ContentValues createContentValues(String name, int localport, String remotehost, int remoteport,
-            String pkcsfile, String pkcspass) {
+
+
+    private TunnelConfig getTunnel(Cursor cursor) {
+        return new TunnelConfig(
+                getLong(cursor, SSLDroidDbAdapter.KEY_ROWID),
+                getString(cursor, SSLDroidDbAdapter.KEY_NAME),
+                getInt(cursor, SSLDroidDbAdapter.KEY_LOCALPORT),
+                getString(cursor, SSLDroidDbAdapter.KEY_REMOTEHOST),
+                getInt(cursor, SSLDroidDbAdapter.KEY_REMOTEPORT),
+                getString(cursor, SSLDroidDbAdapter.KEY_PKCSFILE),
+                getString(cursor, SSLDroidDbAdapter.KEY_PKCSPASS)
+        );
+    }
+
+    private ContentValues saveTunnel(TunnelConfig tunnel) {
         ContentValues values = new ContentValues();
-        values.put(KEY_NAME, name);
-        values.put(KEY_LOCALPORT, localport);
-        values.put(KEY_REMOTEHOST, remotehost);
-        values.put(KEY_REMOTEPORT, remoteport);
-        values.put(KEY_REMOTEPORT, remoteport);
-        values.put(KEY_PKCSFILE, pkcsfile);
-        values.put(KEY_PKCSPASS, pkcspass);
+        values.put(KEY_NAME, tunnel.name);
+        values.put(KEY_LOCALPORT, tunnel.listenPort);
+        values.put(KEY_REMOTEHOST, tunnel.targetHost);
+        values.put(KEY_REMOTEPORT, tunnel.targetPort);
+        values.put(KEY_PKCSFILE, tunnel.keyFile);
+        values.put(KEY_PKCSPASS, tunnel.keyPass);
         return values;
     }
 }

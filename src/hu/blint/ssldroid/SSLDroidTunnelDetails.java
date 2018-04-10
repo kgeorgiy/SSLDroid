@@ -60,7 +60,7 @@ public class SSLDroidTunnelDetails extends Activity {
 	        return true;
 	}
 	protected void onPostExecute(Boolean result) {
-	    if (result == false) {
+	    if (!result) {
 	        Toast.makeText(getBaseContext(), "Remote host not found, please recheck...", Toast.LENGTH_LONG).show();
             }
 	}
@@ -73,7 +73,7 @@ public class SSLDroidTunnelDetails extends Activity {
 	        return;
 	    }
 	    //local port validation
-	    if (localport.getText().length() == 0) {
+	    if (listenPort.getText().length() == 0) {
 	        Toast.makeText(getBaseContext(), "Required local port parameter not set up, skipping save", Toast.LENGTH_LONG).show();
 	        return;
 	    }
@@ -81,7 +81,7 @@ public class SSLDroidTunnelDetails extends Activity {
 	        //local port should be between 1025-65535
 	        int cPort = 0;
 	        try {
-	            cPort = Integer.parseInt(localport.getText().toString());
+	            cPort = Integer.parseInt(listenPort.getText().toString());
 	        } catch (NumberFormatException e) {
 	            Toast.makeText(getBaseContext(), "Local port parameter has invalid number format", Toast.LENGTH_LONG).show();
 	            return;
@@ -104,18 +104,18 @@ public class SSLDroidTunnelDetails extends Activity {
 	        }
 	    }
 	    //remote host validation
-	    if (remotehost.getText().length() == 0) {
+	    if (targetHost.getText().length() == 0) {
 	        Toast.makeText(getBaseContext(), "Required remote host parameter not set up, skipping save", Toast.LENGTH_LONG).show();
 	        return;
 	    }
 	    else {
 		//if we have interwebs access, the remote host should exist
-		String hostname = remotehost.getText().toString();
+		String hostname = targetHost.getText().toString();
 		new SSLDroidTunnelHostnameChecker().execute(hostname);
 	    }
 
 	    //remote port validation
-	    if (remoteport.getText().length() == 0) {
+	    if (targetPort.getText().length() == 0) {
 	        Toast.makeText(getBaseContext(), "Required remote port parameter not set up, skipping save", Toast.LENGTH_LONG).show();
 	        return;
 	    }
@@ -123,7 +123,7 @@ public class SSLDroidTunnelDetails extends Activity {
 	        //remote port should be between 1025-65535
 	        int cPort = 0;
 	        try {
-	            cPort = Integer.parseInt(remoteport.getText().toString());
+	            cPort = Integer.parseInt(targetPort.getText().toString());
 	        } catch (NumberFormatException e) {
 	            Toast.makeText(getBaseContext(), "Remote port parameter has invalid number format", Toast.LENGTH_LONG).show();
 	            return;
@@ -133,10 +133,10 @@ public class SSLDroidTunnelDetails extends Activity {
 	            return;
 	        }
 	    }
-	    if (pkcsfile.getText().length() != 0) {
+	    if (keyFile.getText().length() != 0) {
 	        // try to open pkcs12 file with password
-	        String cPkcsFile = pkcsfile.getText().toString();
-	        String cPkcsPass = pkcspass.getText().toString();
+	        String cPkcsFile = keyFile.getText().toString();
+	        String cPkcsPass = keyPass.getText().toString();
 	        try {
 	            if (checkKeys(cPkcsFile, cPkcsPass) == false) {
 	                return;
@@ -153,11 +153,11 @@ public class SSLDroidTunnelDetails extends Activity {
     }
 
     private EditText name;
-    private EditText localport;
-    private EditText remotehost;
-    private EditText remoteport;
-    private EditText pkcsfile;
-    private EditText pkcspass;
+    private EditText listenPort;
+    private EditText targetHost;
+    private EditText targetPort;
+    private EditText keyFile;
+    private EditText keyPass;
     private Long rowId;
     private Boolean doClone = false;
     private SSLDroidDbAdapter dbHelper;
@@ -169,12 +169,12 @@ public class SSLDroidTunnelDetails extends Activity {
         setContentView(R.layout.tunnel_details);
 
         Button confirmButton = (Button) findViewById(R.id.tunnel_apply_button);
-        name = (EditText) findViewById(R.id.name);
-        localport = (EditText) findViewById(R.id.localport);
-        remotehost = (EditText) findViewById(R.id.remotehost);
-        remoteport = (EditText) findViewById(R.id.remoteport);
-        pkcsfile = (EditText) findViewById(R.id.pkcsfile);
-        pkcspass = (EditText) findViewById(R.id.pkcspass);
+        name = findEditTextById(R.id.name);
+        listenPort = findEditTextById(R.id.localport);
+        targetHost = findEditTextById(R.id.remotehost);
+        targetPort = findEditTextById(R.id.remoteport);
+        keyFile = findEditTextById(R.id.pkcsfile);
+        keyPass = findEditTextById(R.id.pkcspass);
         Button pickFile = (Button) findViewById(R.id.pickFile);
 
         pickFile.setOnClickListener(new View.OnClickListener() {
@@ -193,6 +193,10 @@ public class SSLDroidTunnelDetails extends Activity {
         }
         populateFields();
         confirmButton.setOnClickListener(new SSLDroidTunnelValidator());
+    }
+
+    private EditText findEditTextById(int name) {
+        return (EditText) findViewById(name);
     }
 
     final List<File> getFileNames(File url, File baseurl)
@@ -239,8 +243,8 @@ public class SSLDroidTunnelDetails extends Activity {
                         Toast.makeText(getBaseContext(), "Empty directory", Toast.LENGTH_LONG).show();
                 }
                 if (name.isFile()) {
-                    pkcsfile.setText(name.getAbsolutePath());
-                    pkcspass.requestFocus();
+                    keyFile.setText(name.getAbsolutePath());
+                    keyPass.requestFocus();
                 }
             }
         })
@@ -288,23 +292,16 @@ public class SSLDroidTunnelDetails extends Activity {
 
     private void populateFields() {
         if (rowId != null) {
-            Cursor Tunnel = dbHelper.fetchTunnel(rowId);
-            startManagingCursor(Tunnel);
+            final TunnelConfig tunnel = dbHelper.fetchTunnel(rowId);
 
             if(!doClone){
-        	name.setText(Tunnel.getString(Tunnel
-                                              .getColumnIndexOrThrow(SSLDroidDbAdapter.KEY_NAME)));
-        	localport.setText(Tunnel.getString(Tunnel
-                                                   .getColumnIndexOrThrow(SSLDroidDbAdapter.KEY_LOCALPORT)));
+                name.setText(tunnel.name);
+                listenPort.setText("" + tunnel.listenPort);
             }
-            remotehost.setText(Tunnel.getString(Tunnel
-                                                .getColumnIndexOrThrow(SSLDroidDbAdapter.KEY_REMOTEHOST)));
-            remoteport.setText(Tunnel.getString(Tunnel
-                                                .getColumnIndexOrThrow(SSLDroidDbAdapter.KEY_REMOTEPORT)));
-            pkcsfile.setText(Tunnel.getString(Tunnel
-                                              .getColumnIndexOrThrow(SSLDroidDbAdapter.KEY_PKCSFILE)));
-            pkcspass.setText(Tunnel.getString(Tunnel
-                                              .getColumnIndexOrThrow(SSLDroidDbAdapter.KEY_PKCSPASS)));
+            targetHost.setText(tunnel.targetHost);
+            targetPort.setText("" + tunnel.targetPort);
+            keyFile.setText(tunnel.keyFile);
+            keyPass.setText(tunnel.keyPass);
         }
     }
 
@@ -315,7 +312,7 @@ public class SSLDroidTunnelDetails extends Activity {
             myStore.load(in_cert, passw.toCharArray());
             Enumeration<String> eAliases = myStore.aliases();
             while (eAliases.hasMoreElements()) {
-                String strAlias = (String) eAliases.nextElement();
+                String strAlias = eAliases.nextElement();
                 if (myStore.isKeyEntry(strAlias)) {
                     // try to retrieve the private key part from PKCS12 certificate
                     myStore.getKey(strAlias, passw.toCharArray());
@@ -369,44 +366,28 @@ public class SSLDroidTunnelDetails extends Activity {
     }
 
     private void saveState() {
-        String sName = name.getText().toString();
-        int sLocalport = 0;
-        try {
-            sLocalport = Integer.parseInt(localport.getText().toString());
-        } catch (NumberFormatException e) {
-        }
-        String sRemotehost = remotehost.getText().toString();
-        int sRemoteport = 0;
-        try {
-            sRemoteport = Integer.parseInt(remoteport.getText().toString());
-        } catch (NumberFormatException e) {
-        }
-        String sPkcsfile = pkcsfile.getText().toString();
-        String sPkcspass = pkcspass.getText().toString();
+        TunnelConfig tunnel = new TunnelConfig(
+                rowId,
+                name.getText().toString(),
+                getPort(listenPort),
+                targetHost.getText().toString(),
+                getPort(targetPort),
+                keyFile.getText().toString(),
+                keyPass.getText().toString()
+        );
 
         //make sure that we have all of our values correctly set
-        if (sName.length() == 0) {
-            return;
-        }
-        if (sLocalport == 0) {
-            return;
-        }
-        if (sRemotehost.length() == 0) {
-            return;
-        }
-        if (sRemoteport == 0) {
+        if (tunnel.name.length() == 0 || tunnel.listenPort == 0 || tunnel.targetHost.length() == 0 || tunnel.targetPort == 0) {
             return;
         }
 
         if (rowId == null || doClone) {
-            long id = dbHelper.createTunnel(sName, sLocalport, sRemotehost,
-                                            sRemoteport, sPkcsfile, sPkcspass);
+            long id = dbHelper.createTunnel(tunnel);
             if (id > 0) {
                 rowId = id;
             }
         } else {
-            dbHelper.updateTunnel(rowId, sName, sLocalport, sRemotehost, sRemoteport,
-                                  sPkcsfile, sPkcspass);
+            dbHelper.updateTunnel(tunnel);
         }
         Log.d("SSLDroid", "Saving settings...");
 
@@ -415,6 +396,15 @@ public class SSLDroidTunnelDetails extends Activity {
         startService(new Intent(this, SSLDroid.class));
         Log.d("SSLDroid", "Restarting service after settings save...");
 
+    }
+
+    private int getPort(EditText port) {
+        int sLocalport = 0;
+        try {
+            sLocalport = Integer.parseInt(port.getText().toString());
+        } catch (NumberFormatException e) {
+        }
+        return sLocalport;
     }
 }
 

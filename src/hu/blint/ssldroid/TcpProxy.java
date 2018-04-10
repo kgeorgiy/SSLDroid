@@ -8,43 +8,25 @@ import android.util.Log;
  * xml.apache.org project.
  */
 public class TcpProxy {
-    String tunnelName;
-    int listenPort;
-    String tunnelHost;
-    int tunnelPort;
-    String keyFile, keyPass;
-    TcpProxyServerThread server;
-    Thread serverThread;
+    private final TunnelConfig config;
+    private final TcpProxyServerThread server;
+    private final Thread serverThread;
 
-    public TcpProxy(String tunnelName, int listenPort, String targetHost, int targetPort, String keyFile, String keyPass) {
-        this.tunnelName = tunnelName;
-        this.listenPort = listenPort;
-        this.tunnelHost = targetHost;
-        this.tunnelPort = targetPort;
-        this.keyFile = keyFile;
-        this.keyPass = keyPass;
-    }
-
-    public void serve() {
-        try {
-            server = new TcpProxyServerThread(this.tunnelName, this.listenPort, this.tunnelHost,
-                                              this.tunnelPort, this.keyFile, this.keyPass);
-        } catch (IOException e) {
-            Log.d("SSLDroid", "Error setting up listening socket: " + e.toString());
-        }
+    public TcpProxy(TunnelConfig config) throws IOException {
+        this.config = config;
+        server = new TcpProxyServerThread(config);
         serverThread = new Thread(server);
+        Log.d("SSLDroid", "Starting tunnel: " + config);
     }
 
     public void stop() {
-        if (server != null) {
-            try {
-                //close the server socket and interrupt the server thread
-                serverThread.interrupt();
-                server.close();
-            } catch (IOException e) {
-                Log.d("SSLDroid", "Interrupt failure: " + e.toString());
-            }
+        try {
+            //close the server socket and interrupt the server thread
+            serverThread.interrupt();
+            server.close();
+        } catch (IOException e) {
+            Log.d("SSLDroid", "Interrupt failure: " + e.toString());
         }
-        Log.d("SSLDroid", "Stopping tunnel "+this.listenPort+":"+this.tunnelHost+":"+this.tunnelPort);
+        Log.d("SSLDroid", "Stopping tunnel " + config);
     }
 }
