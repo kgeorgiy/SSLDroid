@@ -2,6 +2,7 @@ package hu.blint.ssldroid;
 
 import android.util.Log;
 
+import java.io.Closeable;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -21,23 +22,24 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-public class TcpProxyServerThread implements Runnable {
+public class TcpProxyServerThread implements Runnable, Closeable {
 
     String tunnelName;
-    int listenPort;
     String tunnelHost;
     int tunnelPort;
     String keyFile, keyPass;
     int sessionNo = 0;
     private SSLSocketFactory sslSocketFactory;
+    private final ServerSocket ss;
 
-    public TcpProxyServerThread(String tunnelName, int listenPort, String tunnelHost, int tunnelPort, String keyFile, String keyPass) {
+    public TcpProxyServerThread(String tunnelName, int listenPort, String tunnelHost, int tunnelPort, String keyFile, String keyPass) throws IOException {
         this.tunnelName = tunnelName;
-        this.listenPort = listenPort;
         this.tunnelHost = tunnelHost;
         this.tunnelPort = tunnelPort;
         this.keyFile = keyFile;
         this.keyPass = keyPass;
+
+        ss = new ServerSocket(listenPort, 50);
     }
 
     // Create a trust manager that does not validate certificate chains
@@ -96,20 +98,8 @@ public class TcpProxyServerThread implements Runnable {
         return sslSocketFactory;
     }
 
+    @Override
     public void run() {
-        try {
-            ServerSocket ss = new ServerSocket(listenPort, 50);
-            try {
-                run(ss);
-            } finally {
-                ss.close();
-            }
-        } catch (IOException e) {
-            Log.d("SSLDroid", "Error setting up listening socket: " + e.toString());
-        }
-    }
-
-    private void run(ServerSocket ss) {
         Log.d("SSLDroid", "Listening for connections on " + ss.getLocalSocketAddress() + " ...");
         while (true) {
             String fullSessionId = tunnelName + "/" + ++sessionNo;
@@ -138,9 +128,8 @@ public class TcpProxyServerThread implements Runnable {
         server.startHandshake();
 
         log(fullSessionId, "Tunnelling port "
-                + listenPort + " to port "
-                + tunnelPort + " on host "
-                + tunnelHost + " ...");
+                + ss.getLocalSocketAddress() + " to port "
+                + server.getRemoteSocketAddress() + " ...");
 
         // relay the stuff through
         Relay fromBrowserToServer = new Relay(
@@ -165,6 +154,11 @@ public class TcpProxyServerThread implements Runnable {
                 // ignore any error, we just can't set the hostname...
             }
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        ss.close();
     }
 }
 

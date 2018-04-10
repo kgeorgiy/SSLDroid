@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketException;
 
-public class Relay extends Thread {
+public class Relay implements Runnable {
     private final static int BUFFER_SIZE = 4096;
 
     private String id;
@@ -20,6 +20,7 @@ public class Relay extends Thread {
         this.out = out;
     }
 
+    @Override
     public void run() {
         try {
             try {
