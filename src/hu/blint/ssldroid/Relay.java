@@ -11,20 +11,18 @@ public class Relay extends Thread {
     /**
      * 
      */
-    private final TcpProxyServerThread tcpProxyServerThread;
     private InputStream in;
     private OutputStream out;
     private String side;
-    private int sessionid;
+    private int fullSessionId;
     private final static int BUFSIZ = 4096;
     private byte buf[] = new byte[BUFSIZ];
 
-    public Relay(TcpProxyServerThread tcpProxyServerThread, InputStream in, OutputStream out, String side, int sessionid) {
-        this.tcpProxyServerThread = tcpProxyServerThread;
+    public Relay(InputStream in, OutputStream out, String side, int fullSessionId) {
         this.in = in;
         this.out = out;
         this.side = side;
-        this.sessionid = sessionid;
+        this.fullSessionId = fullSessionId;
     }
 
     public void run() {
@@ -34,12 +32,12 @@ public class Relay extends Thread {
             while ((n = in.read(buf)) > 0) {
                 if (Thread.interrupted()) {
                     // We've been interrupted: no more relaying
-                    Log.d("SSLDroid", this.tcpProxyServerThread.tunnelName+"/"+sessionid+": Interrupted "+side+" thread");
+                    log("Interrupted " + side + " thread");
                     try {
                         in.close();
                         out.close();
                     } catch (IOException e) {
-                        Log.d("SSLDroid", this.tcpProxyServerThread.tunnelName+"/"+sessionid+": "+e.toString());
+                        log(e.toString());
                     }
                     return;
                 }
@@ -52,17 +50,21 @@ public class Relay extends Thread {
                 }
             }
         } catch (SocketException e) {
-            Log.d("SSLDroid", this.tcpProxyServerThread.tunnelName+"/"+sessionid+": "+e.toString());
+            log(e.toString());
         } catch (IOException e) {
-            Log.d("SSLDroid", this.tcpProxyServerThread.tunnelName+"/"+sessionid+": "+e.toString());
+            log(e.toString());
         } finally {
             try {
                 in.close();
                 out.close();
             } catch (IOException e) {
-                Log.d("SSLDroid", this.tcpProxyServerThread.tunnelName+"/"+sessionid+": "+e.toString());
+                log(e.toString());
             }
         }
-        Log.d("SSLDroid", this.tcpProxyServerThread.tunnelName+"/"+sessionid+": Quitting "+side+"-side stream proxy...");
+        log("Quitting " + side + "-side stream proxy...");
+    }
+
+    private void log(String message) {
+        Log.d("SSLDroid", fullSessionId + ": " + message);
     }
 }

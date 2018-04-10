@@ -62,7 +62,7 @@ public class TcpProxyServerThread extends Thread {
     };
 
     public final SSLSocketFactory getSocketFactory(String pkcsFile,
-            String pwd, int sessionid) {
+            String pwd, String fullSessionId) {
         if (sslSocketFactory == null) {
             try {
                 KeyManagerFactory keyManagerFactory;
@@ -79,20 +79,22 @@ public class TcpProxyServerThread extends Thread {
                              new SecureRandom());
                 sslSocketFactory = context.getSocketFactory();
             } catch (FileNotFoundException e) {
-                Log.d("SSLDroid", tunnelName+"/"+sessionid+": Error loading the client certificate file:"
-                      + e.toString());
+                log(fullSessionId, "Error loading the client certificate file:"
+                        + e.toString());
             } catch (KeyManagementException e) {
-                Log.d("SSLDroid", tunnelName+"/"+sessionid+": No SSL algorithm support: " + e.toString());
+                log(fullSessionId, "No SSL algorithm support: " + e.toString());
             } catch (NoSuchAlgorithmException e) {
-                Log.d("SSLDroid", tunnelName+"/"+sessionid+": No common SSL algorithm found: " + e.toString());
+                log(fullSessionId, "No common SSL algorithm found: " + e.toString());
             } catch (KeyStoreException e) {
-                Log.d("SSLDroid", tunnelName+"/"+sessionid+": Error setting up keystore:" + e.toString());
+                log(fullSessionId, "Error setting up keystore:" + e.toString());
             } catch (java.security.cert.CertificateException e) {
-                Log.d("SSLDroid", tunnelName+"/"+sessionid+": Error loading the client certificate:" + e.toString());
+                log(fullSessionId, "Error loading the client certificate:" + e.toString());
             } catch (IOException e) {
-                Log.d("SSLDroid", tunnelName+"/"+sessionid+": Error loading the client certificate file:" + e.toString());
+                log(fullSessionId, "Error loading the client certificate file:"
+                        + e.toString());
             } catch (UnrecoverableKeyException e) {
-                Log.d("SSLDroid", tunnelName+"/"+sessionid+": Error loading the client certificate:" + e.toString());
+                String message = "Error loading the client certificate:" + e.toString();
+                log(fullSessionId, message);
             }
         }
         return sslSocketFactory;
@@ -108,12 +110,14 @@ public class TcpProxyServerThread extends Thread {
             return;
         }
         while (true) {
+            String fullSessionId = tunnelName + "/" + sessionid;
+            sessionid++;
             try {
                 Thread fromBrowserToServer = null;
                 Thread fromServerToBrowser = null;
 
                 if (isInterrupted()) {
-                    Log.d("SSLDroid", tunnelName+"/"+sessionid+": Interrupted server thread, closing sockets...");
+                    log(fullSessionId, "Interrupted server thread, closing sockets...");
                     ss.close();
                     return;
                 }
@@ -121,23 +125,22 @@ public class TcpProxyServerThread extends Thread {
                 Socket sc = null;
                 try {
                     sc = ss.accept();
-                    sessionid++;
                 } catch (SocketException e) {
-                    Log.d("SSLDroid", "Accept failure: " + e.toString());
+                    log(fullSessionId, "Accept failure: " + e.toString());
                 }
 
                 Socket st = null;
                 try {
-                    final SSLSocketFactory sf = getSocketFactory(this.keyFile, this.keyPass, this.sessionid);
+                    final SSLSocketFactory sf = getSocketFactory(this.keyFile, this.keyPass, fullSessionId);
                     st = (SSLSocket) sf.createSocket(this.tunnelHost, this.tunnelPort);
                     setSNIHost(sf, (SSLSocket) st, this.tunnelHost);
                     ((SSLSocket) st).startHandshake();
                 } catch (IOException e) {
-                    Log.d("SSLDroid", tunnelName+"/"+sessionid+": SSL failure: " + e.toString());
+                    log(fullSessionId, "SSL failure: " + e.toString());
                     return;
                 }
                 catch (Exception e) {
-                    Log.d("SSLDroid", tunnelName+"/"+sessionid+": SSL failure: " + e.toString());
+                    log(fullSessionId, "SSL failure: " + e.toString());
                     if (sc != null)
                       {
                         sc.close();
@@ -146,27 +149,31 @@ public class TcpProxyServerThread extends Thread {
                 }
 
                 if (sc == null || st == null) {
-                    Log.d("SSLDroid", tunnelName+"/"+sessionid+": Trying socket operation on a null socket, returning");
+                    log(fullSessionId, "Trying socket operation on a null socket, returning");
                     return;
                 }
-                Log.d("SSLDroid", tunnelName+"/"+sessionid+": Tunnelling port "
-                      + listenPort + " to port "
-                      + tunnelPort + " on host "
-                      + tunnelHost + " ...");
+                log(fullSessionId, "Tunnelling port "
+                        + listenPort + " to port "
+                        + tunnelPort + " on host "
+                        + tunnelHost + " ...");
 
                 // relay the stuff through
                 fromBrowserToServer = new Relay(
-                    this, sc.getInputStream(), st.getOutputStream(), "client", sessionid);
+                        sc.getInputStream(), st.getOutputStream(), "client", sessionid);
                 fromServerToBrowser = new Relay(
-                    this, st.getInputStream(), sc.getOutputStream(), "server", sessionid);
+                        st.getInputStream(), sc.getOutputStream(), "server", sessionid);
 
                 fromBrowserToServer.start();
                 fromServerToBrowser.start();
 
             } catch (IOException ee) {
-                Log.d("SSLDroid", tunnelName+"/"+sessionid+": Ouch: " + ee.toString());
+                log(fullSessionId, "Ouch: " + ee.toString());
             }
         }
+    }
+
+    private void log(String fullSessionId, String message) {
+        Log.d("SSLDroid", fullSessionId + ": " + message);
     }
 
     private void setSNIHost(final SSLSocketFactory factory, final SSLSocket socket, final String hostname) {
