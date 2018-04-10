@@ -92,7 +92,6 @@ public class SSLDroidTunnelDetails extends Activity {
 	        }
 	        //check if the requested port is colliding with a port already configured for another tunnel
 	        SSLDroidDbAdapter dbHelper = new SSLDroidDbAdapter(getBaseContext());
-	        dbHelper.open();
 	        Cursor cursor = dbHelper.fetchAllLocalPorts();
 	        startManagingCursor(cursor);
 	        while (cursor.moveToNext()) {
@@ -167,7 +166,6 @@ public class SSLDroidTunnelDetails extends Activity {
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
         dbHelper = new SSLDroidDbAdapter(this);
-        dbHelper.open();
         setContentView(R.layout.tunnel_details);
 
         Button confirmButton = (Button) findViewById(R.id.tunnel_apply_button);

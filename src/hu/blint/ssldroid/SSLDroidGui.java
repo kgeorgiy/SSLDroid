@@ -31,7 +31,6 @@ public class SSLDroidGui extends ListActivity {
         setContentView(R.layout.tunnel_list);
         this.getListView().setDividerHeight(2);
         dbHelper = new SSLDroidDbAdapter(this);
-        dbHelper.open();
         fillData();
         registerForContextMenu(getListView());
     }

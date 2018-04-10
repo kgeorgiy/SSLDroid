@@ -26,12 +26,8 @@ public class SSLDroidDbAdapter {
 
     public SSLDroidDbAdapter(Context context) {
         this.context = context;
-    }
-
-    public SSLDroidDbAdapter open() throws SQLException {
         dbHelper = new SSLDroidDbHelper(context);
         database = dbHelper.getWritableDatabase();
-        return this;
     }
 
     public void close() {

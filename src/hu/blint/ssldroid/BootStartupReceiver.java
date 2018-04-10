@@ -13,7 +13,6 @@ public class BootStartupReceiver extends BroadcastReceiver {
 	Boolean stopped = false;
 	SSLDroidDbAdapter dbHelper;
 	dbHelper = new SSLDroidDbAdapter(context);
-        dbHelper.open();
         Cursor cursor = dbHelper.getStopStatus();
 
         int tunnelcount = cursor.getCount();
