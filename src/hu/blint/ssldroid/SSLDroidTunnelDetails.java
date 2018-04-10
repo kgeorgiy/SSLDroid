@@ -11,8 +11,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 
-import java.security.cert.Certificate;
-import javax.security.cert.CertificateExpiredException;
 import javax.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -26,7 +24,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
-import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -42,114 +39,70 @@ import hu.blint.ssldroid.db.SSLDroidDbAdapter;
 //TODO: test connection button
 
 public class SSLDroidTunnelDetails extends Activity {
+    private static final int INVALID_PORT = Integer.MIN_VALUE;
+    private static final int NO_PORT = Integer.MIN_VALUE + 1;
 
     private final class SSLDroidTunnelHostnameChecker extends AsyncTask<String, Integer, Boolean> {
+        @Override
+        protected Boolean doInBackground(String... params) {
+            ConnectivityManager conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+            String hostname = params[0];
 
-	@Override
-	protected Boolean doInBackground(String... params) {
-	        ConnectivityManager conMgr =  (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-                String hostname = params[0];
-
-	        if ( conMgr.getActiveNetworkInfo() != null || conMgr.getActiveNetworkInfo().isAvailable()) {
-	            try {
-	                InetAddress.getByName(hostname);
-	            } catch (UnknownHostException e) {
-	                return false;
-	            }
-	        }
-	        return true;
-	}
-	protected void onPostExecute(Boolean result) {
-	    if (!result) {
-	        Toast.makeText(getBaseContext(), "Remote host not found, please recheck...", Toast.LENGTH_LONG).show();
+            if (conMgr != null && conMgr.getActiveNetworkInfo() != null || conMgr.getActiveNetworkInfo().isAvailable()) {
+                try {
+                    InetAddress.getByName(hostname);
+                } catch (UnknownHostException e) {
+                    return false;
+                }
             }
-	}
+            return true;
+        }
+
+        protected void onPostExecute(Boolean result) {
+            if (!result) {
+                error("Remote host not found, please recheck...");
+            }
+        }
     }
 
     private final class SSLDroidTunnelValidator implements View.OnClickListener {
-	public void onClick(View view) {
-	    if (name.getText().length() == 0) {
-	        Toast.makeText(getBaseContext(), "Required tunnel name parameter not set up, skipping save", Toast.LENGTH_LONG).show();
-	        return;
-	    }
-	    //local port validation
-	    if (listenPort.getText().length() == 0) {
-	        Toast.makeText(getBaseContext(), "Required local port parameter not set up, skipping save", Toast.LENGTH_LONG).show();
-	        return;
-	    }
-	    else {
-	        //local port should be between 1025-65535
-	        int cPort = 0;
-	        try {
-	            cPort = Integer.parseInt(listenPort.getText().toString());
-	        } catch (NumberFormatException e) {
-	            Toast.makeText(getBaseContext(), "Local port parameter has invalid number format", Toast.LENGTH_LONG).show();
-	            return;
-	        }
-	        if (cPort < 1025 || cPort > 65535) {
-	            Toast.makeText(getBaseContext(), "Local port parameter not in valid range (1025-65535)", Toast.LENGTH_LONG).show();
-	            return;
-	        }
-	        //check if the requested port is colliding with a port already configured for another tunnel
-	        SSLDroidDbAdapter dbHelper = new SSLDroidDbAdapter(getBaseContext());
-	        Cursor cursor = dbHelper.fetchAllLocalPorts();
-	        startManagingCursor(cursor);
-	        while (cursor.moveToNext()) {
-	            String cDbName = cursor.getString(cursor.getColumnIndexOrThrow(SSLDroidDbAdapter.KEY_NAME));
-	            int cDbPort = cursor.getInt(cursor.getColumnIndexOrThrow(SSLDroidDbAdapter.KEY_LOCALPORT));
-	            if (cPort == cDbPort && !cDbName.contentEquals(name.getText().toString())) {
-	                Toast.makeText(getBaseContext(), "Local port already configured in tunnel '"+cDbName+"', please change...", Toast.LENGTH_LONG).show();
-	                return;
-	            }
-	        }
-	    }
-	    //remote host validation
-	    if (targetHost.getText().length() == 0) {
-	        Toast.makeText(getBaseContext(), "Required remote host parameter not set up, skipping save", Toast.LENGTH_LONG).show();
-	        return;
-	    }
-	    else {
-		//if we have interwebs access, the remote host should exist
-		String hostname = targetHost.getText().toString();
-		new SSLDroidTunnelHostnameChecker().execute(hostname);
-	    }
+        public void onClick(View view) {
+            TunnelConfig tunnel = parseTunnel();
 
-	    //remote port validation
-	    if (targetPort.getText().length() == 0) {
-	        Toast.makeText(getBaseContext(), "Required remote port parameter not set up, skipping save", Toast.LENGTH_LONG).show();
-	        return;
-	    }
-	    else {
-	        //remote port should be between 1025-65535
-	        int cPort = 0;
-	        try {
-	            cPort = Integer.parseInt(targetPort.getText().toString());
-	        } catch (NumberFormatException e) {
-	            Toast.makeText(getBaseContext(), "Remote port parameter has invalid number format", Toast.LENGTH_LONG).show();
-	            return;
-	        }
-	        if (cPort < 1 || cPort > 65535) {
-	            Toast.makeText(getBaseContext(), "Remote port parameter not in valid range (1-65535)", Toast.LENGTH_LONG).show();
-	            return;
-	        }
-	    }
-	    if (keyFile.getText().length() != 0) {
-	        // try to open pkcs12 file with password
-	        String cPkcsFile = keyFile.getText().toString();
-	        String cPkcsPass = keyPass.getText().toString();
-	        try {
-	            if (checkKeys(cPkcsFile, cPkcsPass) == false) {
-	                return;
-	            }
-	        } catch (Exception e) {
-	            Toast.makeText(getBaseContext(), "PKCS12 problem: "+e.getMessage(), Toast.LENGTH_LONG).show();
-	            return;
-	        }
-	    }
-	    saveState();
-	    setResult(RESULT_OK);
-	    finish();
-	}
+            if (tunnel.name.isEmpty()) {
+                error("Required tunnel name parameter not set up, skipping save");
+            } else if (tunnel.listenPort == NO_PORT) {
+                error("Required local port parameter not set up, skipping save");
+            } else if (tunnel.listenPort == INVALID_PORT) {
+                error("Local port parameter has invalid number format");
+            } else if (tunnel.listenPort < 1025 || tunnel.listenPort > 65535) {
+                error("Local port parameter not in valid range (1025-65535)");
+            } else if (hasDuplicates(tunnel.listenPort)) {
+                // Error
+            } else if (tunnel.targetPort == NO_PORT) {
+                error("Required remote host parameter not set up, skipping save");
+            } else if (tunnel.targetPort == INVALID_PORT) {
+                error("Remote port parameter has invalid number format");
+            } else if (tunnel.targetPort < 1 || tunnel.targetPort > 65535) {
+                error("Remote port parameter not in valid range (1-65535)");
+            } else if (checkKeys(tunnel)) {
+                new SSLDroidTunnelHostnameChecker().execute(tunnel.targetHost);
+                saveState();
+                setResult(RESULT_OK);
+                finish();
+
+            }
+        }
+
+        private boolean hasDuplicates(int listenPort) {
+            for (TunnelConfig tunnel : dbHelper.fetchAllTunnels()) {
+                if (listenPort == tunnel.listenPort) {
+                    error("Local port already configured in tunnel '"+ tunnel.name +"', please change...");
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     private EditText name;
@@ -240,7 +193,7 @@ public class SSLDroidTunnelDetails extends Activity {
                         showFiles(names_, baseurl);
                     }
                     else
-                        Toast.makeText(getBaseContext(), "Empty directory", Toast.LENGTH_LONG).show();
+                        error("Empty directory");
                 }
                 if (name.isFile()) {
                     keyFile.setText(name.getAbsolutePath());
@@ -305,45 +258,53 @@ public class SSLDroidTunnelDetails extends Activity {
         }
     }
 
-    public boolean checkKeys(String inCertPath, String passw) throws Exception {
+    public boolean checkKeys(TunnelConfig tunnel) {
+        if (tunnel.keyFile.isEmpty()) {
+            return true;
+        }
+
         try {
-            FileInputStream in_cert = new FileInputStream(inCertPath);
-            KeyStore myStore = KeyStore.getInstance("PKCS12");
-            myStore.load(in_cert, passw.toCharArray());
-            Enumeration<String> eAliases = myStore.aliases();
-            while (eAliases.hasMoreElements()) {
-                String strAlias = eAliases.nextElement();
-                if (myStore.isKeyEntry(strAlias)) {
-                    // try to retrieve the private key part from PKCS12 certificate
-                    myStore.getKey(strAlias, passw.toCharArray());
-                    Certificate mycrt = myStore.getCertificate(strAlias);
-                    X509Certificate mycert = X509Certificate.getInstance(mycrt.getEncoded());
-                    try {
-                	mycert.checkValidity();
-                    } catch (CertificateExpiredException e) {
-                        Toast.makeText(getBaseContext(), "PKCS12 problem: "+e.getMessage(), Toast.LENGTH_LONG).show();
-                        return false;                	
+            FileInputStream in = new FileInputStream(tunnel.keyFile);
+            try {
+                KeyStore store = KeyStore.getInstance("PKCS12");
+                char[] password = tunnel.keyPass.toCharArray();
+                store.load(in, password);
+
+                Enumeration<String> eAliases = store.aliases();
+                while (eAliases.hasMoreElements()) {
+                    String alias = eAliases.nextElement();
+                    if (store.isKeyEntry(alias)) {
+                        // try to retrieve the private key part from PKCS12 certificate
+                        store.getKey(alias, password);
+                        X509Certificate.getInstance(store.getCertificate(alias).getEncoded()).checkValidity();
                     }
                 }
+                return true;
+            } finally {
+                in.close();
             }
-
         } catch (KeyStoreException e) {
-            Toast.makeText(getBaseContext(), "PKCS12 problem: "+e.getMessage(), Toast.LENGTH_LONG).show();
-            return false;
+            keyError(e);
         } catch (NoSuchAlgorithmException e) {
-            Toast.makeText(getBaseContext(), "PKCS12 problem: "+e.getMessage(), Toast.LENGTH_LONG).show();
-            return false;
+            keyError(e);
         } catch (CertificateException e) {
-            Toast.makeText(getBaseContext(), "PKCS12 problem: "+e.getMessage(), Toast.LENGTH_LONG).show();
-            return false;
+            keyError(e);
+        } catch (javax.security.cert.CertificateException e) {
+            e.printStackTrace();
         } catch (IOException e) {
-            Toast.makeText(getBaseContext(), "PKCS12 problem: "+e.getMessage(), Toast.LENGTH_LONG).show();
-            return false;
+            keyError(e);
         } catch (UnrecoverableKeyException e) {
-            Toast.makeText(getBaseContext(), "PKCS12 problem: "+e.getMessage(), Toast.LENGTH_LONG).show();
-            return false;
+            keyError(e);
         }
-        return true;
+        return false;
+    }
+
+    private void keyError(Exception e) {
+        error("PKCS12 problem: " + e.getMessage());
+    }
+
+    private void error(String message) {
+        Toast.makeText(getBaseContext(), message, Toast.LENGTH_LONG).show();
     }
 
 
@@ -366,15 +327,7 @@ public class SSLDroidTunnelDetails extends Activity {
     }
 
     private void saveState() {
-        TunnelConfig tunnel = new TunnelConfig(
-                rowId,
-                name.getText().toString(),
-                getPort(listenPort),
-                targetHost.getText().toString(),
-                getPort(targetPort),
-                keyFile.getText().toString(),
-                keyPass.getText().toString()
-        );
+        TunnelConfig tunnel = parseTunnel();
 
         //make sure that we have all of our values correctly set
         if (tunnel.name.length() == 0 || tunnel.listenPort == 0 || tunnel.targetHost.length() == 0 || tunnel.targetPort == 0) {
@@ -398,13 +351,27 @@ public class SSLDroidTunnelDetails extends Activity {
 
     }
 
-    private int getPort(EditText port) {
-        int sLocalport = 0;
-        try {
-            sLocalport = Integer.parseInt(port.getText().toString());
-        } catch (NumberFormatException e) {
+    private TunnelConfig parseTunnel() {
+        return new TunnelConfig(
+                rowId,
+                name.getText().toString(),
+                parsePort(listenPort.getText().toString()),
+                targetHost.getText().toString(),
+                parsePort(targetPort.getText().toString()),
+                keyFile.getText().toString(),
+                keyPass.getText().toString()
+        );
+    }
+
+    private int parsePort(String value) {
+        if (value.isEmpty()) {
+            return NO_PORT;
         }
-        return sLocalport;
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            return INVALID_PORT;
+        }
     }
 }
 
