@@ -5,7 +5,6 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.SocketException;
 
 public class Relay implements Runnable {
     private final static int BUFFER_SIZE = 4096;
@@ -38,13 +37,12 @@ public class Relay implements Runnable {
                     }
                     log("Quitting");
                 } finally {
+                    log("Closing streams");
                     in.close();
                 }
             } finally {
                 out.close();
             }
-        } catch (SocketException e) {
-            log(e.toString());
         } catch (IOException e) {
             log(e.toString());
         }
