@@ -1,7 +1,5 @@
 package hu.blint.ssldroid;
 
-import android.util.Log;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -49,6 +47,6 @@ public class Relay implements Runnable {
     }
 
     private void log(String message) {
-        Log.d("SSLDroid", id + ": " + message);
+        Log.d(id + ": " + message);
     }
 }

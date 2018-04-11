@@ -1,7 +1,5 @@
 package hu.blint.ssldroid;
 
-import android.util.Log;
-
 import java.io.Closeable;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -35,7 +33,7 @@ public class TcpTunnel implements Runnable, Closeable {
     TcpTunnel(TunnelConfig config) throws IOException {
         this.config = config;
         ss = new ServerSocket(config.listenPort, 50);
-        Log.d("SSLDroid", "Starting tunnel: " + config + " " + ss);
+        Log.d("Starting tunnel: " + config + " " + ss);
         thread = new Thread(this);
         thread.start();
     }
@@ -87,8 +85,7 @@ public class TcpTunnel implements Runnable, Closeable {
                 log(fullSessionId, "Error loading the client certificate file:"
                         + e.toString());
             } catch (UnrecoverableKeyException e) {
-                String message = "Error loading the client certificate:" + e.toString();
-                log(fullSessionId, message);
+                log(fullSessionId, "Error loading the client certificate:" + e.toString());
             }
         }
         return sslSocketFactory;
@@ -96,7 +93,7 @@ public class TcpTunnel implements Runnable, Closeable {
 
     @Override
     public void run() {
-        Log.d("SSLDroid", "Listening for connections on " + ss.getLocalSocketAddress() + " ...");
+        Log.d("Listening for connections on " + ss.getLocalSocketAddress() + " ...");
         while (true) {
             String fullSessionId = getTunnelName() + "/" + ++sessionNo;
             try {
@@ -137,7 +134,7 @@ public class TcpTunnel implements Runnable, Closeable {
     }
 
     private void log(String fullSessionId, String message) {
-        Log.d("SSLDroid", fullSessionId + ": " + message);
+        Log.d(fullSessionId + ": " + message);
     }
 
     private void setSNIHost(final SSLSocketFactory factory, final SSLSocket socket, final String hostname) {
@@ -159,9 +156,9 @@ public class TcpTunnel implements Runnable, Closeable {
             thread.interrupt();
             ss.close();
         } catch (IOException e) {
-            Log.d("SSLDroid", "Interrupt failure: " + e.toString());
+            Log.d("Interrupt failure: " + e.toString());
         }
-        Log.d("SSLDroid", "Stopping tunnel " + config);
+        Log.d("Stopping tunnel " + config);
     }
 
 

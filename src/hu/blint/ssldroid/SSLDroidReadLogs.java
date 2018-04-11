@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -59,18 +58,18 @@ public class SSLDroidReadLogs extends Activity {
                 logcontainer.append(line+separator);
             }
         } catch (IOException e) {
-            Log.d("SSLDroid", "Logcat problem: "+e.toString());
+            Log.d("Logcat problem: " + e.toString());
         }
         finally {
             if (reader != null)
                 try {
                     reader.close();
                 } catch (IOException e) {
-                    Log.d("SSLDroid", "Logcat problem: "+e.toString());
+                    Log.d("Logcat problem: "+e.toString());
                 }
         }
     }
-    
+
     public void shareLogs() {
 	Intent sendIntent = new Intent();
 	TextView logcontainer = (TextView) findViewById(R.id.logTextView);

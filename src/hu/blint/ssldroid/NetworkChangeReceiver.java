@@ -1,13 +1,13 @@
 package hu.blint.ssldroid;
 
-import hu.blint.ssldroid.db.SSLDroidDbAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.util.Log;
+
+import hu.blint.ssldroid.db.SSLDroidDbAdapter;
 
 public class NetworkChangeReceiver extends BroadcastReceiver {
 
@@ -18,8 +18,8 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
         Cursor cursor = dbHelper.getStopStatus();
 
         int tunnelcount = cursor.getCount();
-        Log.d("SSLDroid", "Tunnelcount: "+tunnelcount);
-        
+        Log.d("Tunnelcount: " + tunnelcount);
+
         //don't start if the close status field is available
         if (tunnelcount != 0){
             stopped = true;
@@ -30,7 +30,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
         
 	return stopped;
     }
-    
+
     @Override
     public void onReceive(Context context, Intent intent) {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService( Context.CONNECTIVITY_SERVICE );
@@ -41,7 +41,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
             context.stopService(i);
             return;
         }
-        Log.d("SSLDroid", activeNetInfo.toString());
+        Log.d(activeNetInfo.toString());
         if (activeNetInfo.isAvailable()) {
             Intent i = new Intent();
             i.setAction("hu.blint.ssldroid.SSLDroid");
@@ -49,7 +49,7 @@ public class NetworkChangeReceiver extends BroadcastReceiver {
             if (!isStopped(context))
         	context.startService(i);
             else
-        	Log.w("SSLDroid", "Not starting service as directed by explicit close");
+        	Log.w("Not starting service as directed by explicit close");
         }
     }
 }

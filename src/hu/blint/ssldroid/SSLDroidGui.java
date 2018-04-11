@@ -3,7 +3,6 @@ package hu.blint.ssldroid;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -63,16 +62,16 @@ public class SSLDroidGui extends ListActivity {
             createTunnel();
             return true;
         case R.id.stopservice:
-            Log.d("SSLDroid", "Stopping service");
+            Log.d("Stopping service");
             stopService(new Intent(this, SSLDroid.class));
             return true;
         case R.id.stopserviceforgood:
-            Log.d("SSLDroid", "Stopping service until explicitly started");
+            Log.d("Stopping service until explicitly started");
             dbHelper.setStopStatus();
             stopService(new Intent(this, SSLDroid.class));
             return true;
         case R.id.startservice:
-            Log.d("SSLDroid", "Starting service");
+            Log.d("Starting service");
             dbHelper.delStopStatus();
             startService(new Intent(this, SSLDroid.class));
             return true;

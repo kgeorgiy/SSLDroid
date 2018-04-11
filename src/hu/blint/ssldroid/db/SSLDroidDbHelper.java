@@ -3,7 +3,8 @@ package hu.blint.ssldroid.db;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
+
+import hu.blint.ssldroid.Log;
 
 public class SSLDroidDbHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "applicationdata";
@@ -31,8 +32,7 @@ public class SSLDroidDbHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase database, int oldVersion,
                           int newVersion) {
-        Log.w(SSLDroidDbHelper.class.getName(),
-        		"Upgrading database from version " + oldVersion + " to "
+        Log.w("Upgrading database from version " + oldVersion + " to "
         				+ newVersion + ", which will add a status table");
         database.execSQL("CREATE TABLE IF NOT EXISTS status (name text, value text);");
         onCreate(database);

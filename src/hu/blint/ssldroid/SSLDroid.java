@@ -9,9 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.IBinder;
-import android.util.Log;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +17,6 @@ import java.util.List;
 import hu.blint.ssldroid.db.SSLDroidDbAdapter;
 
 public class SSLDroid extends Service {
-    private static final String TAG = "SSLDroid";
 
     private List<TcpTunnel> tunnels = new ArrayList<TcpTunnel>();
 
@@ -32,7 +29,7 @@ public class SSLDroid extends Service {
                 try {
                     tunnels.add(new TcpTunnel(config));
                 } catch (IOException e) {
-                    Log.d(TAG, "Error creating tunnel " + config + ": " + e.toString());
+                    Log.d("Error creating tunnel " + config + ": " + e.toString());
                     new AlertDialog.Builder(this)
                             .setTitle("SSLDroid encountered a fatal error: " + e.getMessage())
                             .setPositiveButton(android.R.string.ok, null)
@@ -49,11 +46,11 @@ public class SSLDroid extends Service {
         try {
             info = getPackageManager().getPackageInfo(getPackageName(), 0);
         } catch (NameNotFoundException e) {
-            Log.d(TAG, "Error getting package version; error='"+e.toString()+"'");
+            Log.d("Error getting package version; error='"+e.toString()+"'");
             return;
         }
         //startup message
-        Log.d(TAG, "SSLDroid Service Started; version='"+ info.versionName +"', versionname='"+info.versionCode+"'");
+        Log.d("SSLDroid Service Started; version='"+ info.versionName +"', versionname='"+info.versionCode+"'");
     }
 
     @Override
@@ -74,10 +71,10 @@ public class SSLDroid extends Service {
                 proxy.close();
             }
         } catch (Exception e) {
-            Log.d("SSLDroid", "Error stopping service: " + e.toString());
+            Log.d("Error stopping service: " + e.toString());
         }
         removeNotification(0);
-        Log.d(TAG, "SSLDroid Service Stopped");
+        Log.d("SSLDroid Service Stopped");
     }
 
     public void removeNotification(int id) {

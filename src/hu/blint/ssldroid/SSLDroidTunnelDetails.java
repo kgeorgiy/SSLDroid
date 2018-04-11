@@ -12,6 +12,8 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 
 import javax.security.cert.X509Certificate;
+
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedList;
@@ -28,7 +30,6 @@ import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -178,7 +179,7 @@ public class SSLDroidTunnelDetails extends Activity {
                 namesList[i] = file.getAbsolutePath().replaceFirst(baseurl+"/", "");
             i++;
         }
-        //Log.d("SSLDroid", "Gathered file names: "+namesList.toString());
+        Log.d("Gathered file names: "+ Arrays.toString(namesList));
 
         // prompt user to select any file from the sdcard root
         new AlertDialog.Builder(SSLDroidTunnelDetails.this)
@@ -225,7 +226,7 @@ public class SSLDroidTunnelDetails extends Activity {
     private void pickFileSimple() {
         // build list of all files in sdcard root
         final File sdcard = Environment.getExternalStorageDirectory();
-        Log.d("SSLDroid", "SD Card location: "+sdcard.toString());
+        Log.d("SD Card location: "+sdcard.toString());
 
         // Don't show a dialog if the SD card is completely absent.
         final String state = Environment.getExternalStorageState();
@@ -342,12 +343,12 @@ public class SSLDroidTunnelDetails extends Activity {
         } else {
             dbHelper.updateTunnel(tunnel);
         }
-        Log.d("SSLDroid", "Saving settings...");
+        Log.d("Saving settings...");
 
         //restart the service
         stopService(new Intent(this, SSLDroid.class));
         startService(new Intent(this, SSLDroid.class));
-        Log.d("SSLDroid", "Restarting service after settings save...");
+        Log.d("Restarting service after settings save...");
 
     }
 
