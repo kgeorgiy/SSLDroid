@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/readLogs_refresh" android:icon="@android:drawable/ic_menu_rotate" android:title="@string/refresh"/>
-    <item android:id="@+id/readLogs_share" android:icon="@android:drawable/ic_menu_share" android:title="@string/share"/>
+    <item
+        android:id="@+id/readLogs_refresh"
+        android:icon="@android:drawable/ic_menu_rotate"
+        android:title="@string/refresh"
+        android:enabled="true"
+        android:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/readLogs_share"
+        android:icon="@android:drawable/ic_menu_share"
+        android:title="@string/share"
+        android:enabled="true"
+        android:showAsAction="ifRoom"/>
 </menu>
