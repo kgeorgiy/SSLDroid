@@ -72,7 +72,7 @@ public class SSLDroidGui extends ListActivity {
             return true;
         case R.id.startservice:
             Log.d("Starting service");
-            dbHelper.delStopStatus();
+            dbHelper.clearStopStatus();
             startService(new Intent(this, SSLDroid.class));
             return true;
         case R.id.readlogs:
