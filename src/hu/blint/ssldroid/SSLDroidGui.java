@@ -105,8 +105,8 @@ public class SSLDroidGui extends ListActivity {
 
     public void cloneTunnel(long id) {
         Intent i = new Intent(this, SSLDroidTunnelDetails.class);
-        i.putExtra(SSLDroidDbAdapter.KEY_ROWID, id);
-        i.putExtra("doClone", true);
+        i.putExtra(SSLDroidTunnelDetails.ROW_ID, id);
+        i.putExtra(SSLDroidTunnelDetails.DO_CLONE, true);
         startActivityForResult(i, ACTIVITY_EDIT);
     }
     
@@ -120,7 +120,7 @@ public class SSLDroidGui extends ListActivity {
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
         Intent i = new Intent(this, SSLDroidTunnelDetails.class);
-        i.putExtra(SSLDroidDbAdapter.KEY_ROWID, id);
+        i.putExtra(SSLDroidTunnelDetails.ROW_ID, id);
         // Activity returns an result if called with startActivityForResult
         startActivityForResult(i, ACTIVITY_EDIT);
     }

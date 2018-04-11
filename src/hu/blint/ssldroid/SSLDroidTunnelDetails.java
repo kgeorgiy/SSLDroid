@@ -42,6 +42,9 @@ import hu.blint.ssldroid.db.SSLDroidDbAdapter;
 public class SSLDroidTunnelDetails extends Activity {
     private static final int INVALID_PORT = Integer.MIN_VALUE;
     private static final int NO_PORT = Integer.MIN_VALUE + 1;
+    public static final String ROW_ID = "rowId";
+    public static final String DO_CLONE = "doClone";
+    public static final int NO_ROW_ID = -1;
 
     private final class SSLDroidTunnelHostnameChecker extends AsyncTask<String, Integer, Boolean> {
         @Override
@@ -97,7 +100,7 @@ public class SSLDroidTunnelDetails extends Activity {
 
         private boolean hasDuplicates(int listenPort) {
             for (TunnelConfig tunnel : dbHelper.fetchAllTunnels()) {
-                if (listenPort == tunnel.listenPort && (rowId == null || (long) rowId != tunnel.id)) {
+                if (listenPort == tunnel.listenPort && rowId != tunnel.id) {
                     error("Local port already configured in tunnel '"+ tunnel.name +"', please change...");
                     return true;
                 }
@@ -112,7 +115,7 @@ public class SSLDroidTunnelDetails extends Activity {
     private EditText targetPort;
     private EditText keyFile;
     private EditText keyPass;
-    private Long rowId;
+    private long rowId = NO_ROW_ID;
     private Boolean doClone = false;
     private SSLDroidDbAdapter dbHelper;
 
@@ -137,13 +140,11 @@ public class SSLDroidTunnelDetails extends Activity {
             }
         });
 
-        rowId = null;
         Bundle extras = getIntent().getExtras();
-        rowId = (bundle == null) ? null : (Long) bundle
-                .getSerializable(SSLDroidDbAdapter.KEY_ROWID);
+        rowId = (bundle == null) ? NO_ROW_ID : bundle.getLong(ROW_ID, NO_ROW_ID);
         if (extras != null) {
-            rowId = extras.getLong(SSLDroidDbAdapter.KEY_ROWID);
-            doClone = extras.getBoolean("doClone", false);
+            rowId = extras.getLong(ROW_ID, NO_ROW_ID);
+            doClone = extras.getBoolean(DO_CLONE, false);
         }
         populateFields();
         confirmButton.setOnClickListener(new SSLDroidTunnelValidator());
@@ -245,7 +246,7 @@ public class SSLDroidTunnelDetails extends Activity {
     }
 
     private void populateFields() {
-        if (rowId != null) {
+        if (rowId != NO_ROW_ID) {
             final TunnelConfig tunnel = dbHelper.fetchTunnel(rowId);
 
             if(!doClone){
@@ -312,7 +313,7 @@ public class SSLDroidTunnelDetails extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         saveState();
-        outState.putSerializable(SSLDroidDbAdapter.KEY_ROWID, rowId);
+        outState.putSerializable(ROW_ID, rowId);
     }
 
     @Override
@@ -335,7 +336,7 @@ public class SSLDroidTunnelDetails extends Activity {
             return;
         }
 
-        if (rowId == null || doClone) {
+        if (rowId == NO_ROW_ID || doClone) {
             long id = dbHelper.createTunnel(tunnel);
             if (id > 0) {
                 rowId = id;

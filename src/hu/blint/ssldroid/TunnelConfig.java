@@ -1,7 +1,7 @@
 package hu.blint.ssldroid;
 
 public class TunnelConfig {
-    public final Long id;
+    public final long id;
     public final String name;
     public final int listenPort;
     public final int targetPort;
@@ -9,7 +9,7 @@ public class TunnelConfig {
     public final String keyFile;
     public final String keyPass;
 
-    public TunnelConfig(Long id, String name, int listenPort, String targetHost, int targetPort, String keyFile, String keyPass) {
+    public TunnelConfig(long id, String name, int listenPort, String targetHost, int targetPort, String keyFile, String keyPass) {
         this.id = id;
         this.name = name;
         this.listenPort = listenPort;
