@@ -1,9 +1,5 @@
 package hu.blint.ssldroid;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -11,26 +7,28 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
-public class SSLDroidReadLogs extends Activity {
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
+public class SSLDroidReadLogs extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuItem refresh = menu.add(R.string.refresh);
-        refresh.setIcon(android.R.drawable.ic_menu_rotate);
-        MenuItem share = menu.add(R.string.share);
-        share.setIcon(android.R.drawable.ic_menu_share);
+        getMenuInflater().inflate(R.menu.read_logs, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getTitle() == getResources().getString(R.string.refresh)) 
-            refreshLogs();
-        else if ((item.getTitle() == getResources().getString(R.string.share)))
-            shareLogs();
-        else
-            return false;
-        return true;
+        switch (item.getItemId()) {
+            case R.id.readLogs_refresh:
+                refreshLogs();
+                return true;
+            case R.id.readLogs_share:
+                shareLogs();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -71,14 +69,13 @@ public class SSLDroidReadLogs extends Activity {
     }
 
     public void shareLogs() {
-	Intent sendIntent = new Intent();
-	TextView logcontainer = (TextView) findViewById(R.id.logTextView);
-	CharSequence logdata = logcontainer.getText();
-	
-	sendIntent.setAction(Intent.ACTION_SEND);
-	sendIntent.putExtra(Intent.EXTRA_TEXT, logdata);
-	sendIntent.setType("text/plain");
-	startActivity(sendIntent);
-    }
+        Intent sendIntent = new Intent();
+        TextView logcontainer = (TextView) findViewById(R.id.logTextView);
+        CharSequence logdata = logcontainer.getText();
 
+        sendIntent.setAction(Intent.ACTION_SEND);
+        sendIntent.putExtra(Intent.EXTRA_TEXT, logdata);
+        sendIntent.setType("text/plain");
+        startActivity(sendIntent);
+    }
 }
