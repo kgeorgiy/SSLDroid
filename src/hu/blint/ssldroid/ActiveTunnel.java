@@ -7,7 +7,6 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -88,7 +87,7 @@ public class ActiveTunnel {
     private SSLSocketFactory createSocketFactory() throws TunnelException {
         try {
             SSLContext context = SSLContext.getInstance("TLS");
-            context.init(createKeyManagers(), TRUST_ALL_CERTS, new SecureRandom());
+            context.init(createKeyManagers(), TRUST_ALL_CERTS, null);
             return context.getSocketFactory();
         } catch (NoSuchAlgorithmException e) {
             throw new TunnelException("TLS not supported on this system", e);
