@@ -27,7 +27,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
 import android.net.ConnectivityManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
@@ -35,36 +34,44 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import hu.blint.ssldroid.db.SSLDroidDbAdapter;
+import hu.blint.ssldroid.ui.ContextAsyncTask;
 
 //TODO: cacert + crl should be configurable for the tunnel
 //TODO: test connection button
 
 public class SSLDroidTunnelDetails extends Activity {
+    private static final int IS_REACHABLE_TIMEOUT = 5000;
+
     private static final int INVALID_PORT = Integer.MIN_VALUE;
     private static final int NO_PORT = Integer.MIN_VALUE + 1;
     public static final String ROW_ID = "rowId";
     public static final String DO_CLONE = "doClone";
     public static final int NO_ROW_ID = -1;
 
-    private final class SSLDroidTunnelHostnameChecker extends AsyncTask<String, Integer, Boolean> {
-        @Override
-        protected Boolean doInBackground(String... params) {
-            ConnectivityManager conMgr = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-            String hostname = params[0];
-
-            if (conMgr != null && conMgr.getActiveNetworkInfo() != null || conMgr.getActiveNetworkInfo().isAvailable()) {
-                try {
-                    InetAddress.getByName(hostname);
-                } catch (UnknownHostException e) {
-                    return false;
-                }
-            }
-            return true;
+    private static class HostnameChecker extends ContextAsyncTask<SSLDroidTunnelDetails, String, Void, Boolean> {
+        HostnameChecker(SSLDroidTunnelDetails details) {
+            super(details);
         }
 
-        protected void onPostExecute(Boolean result) {
+        @Override
+        protected Boolean doInBackground(SSLDroidTunnelDetails details, String... params) {
+            ConnectivityManager conMgr = (ConnectivityManager) details.getSystemService(Context.CONNECTIVITY_SERVICE);
+            String hostname = params[0];
+
+            if (conMgr == null || conMgr.getActiveNetworkInfo() == null || !conMgr.getActiveNetworkInfo().isAvailable()) {
+                return true;
+            }
+            try {
+                return InetAddress.getByName(hostname).isReachable(IS_REACHABLE_TIMEOUT);
+            } catch (IOException e) {
+                return false;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(SSLDroidTunnelDetails details, Boolean result) {
             if (!result) {
-                error("Remote host not found, please recheck...");
+                details.error("Remote host not found, please recheck...");
             }
         }
     }
@@ -90,7 +97,7 @@ public class SSLDroidTunnelDetails extends Activity {
             } else if (tunnel.targetPort < 1 || tunnel.targetPort > 65535) {
                 error("Remote port parameter not in valid range (1-65535)");
             } else if (checkKeys(tunnel)) {
-                new SSLDroidTunnelHostnameChecker().execute(tunnel.targetHost);
+                new HostnameChecker(SSLDroidTunnelDetails.this).execute(tunnel.targetHost);
                 saveState();
                 setResult(RESULT_OK);
                 finish();

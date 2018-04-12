@@ -8,16 +8,14 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.AsyncTask;
 import android.os.IBinder;
 
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import hu.blint.ssldroid.db.SSLDroidDbAdapter;
+import hu.blint.ssldroid.ui.ContextAsyncTask;
 import hu.blint.ssldroid.ui.Settings;
 
 public class SSLDroid extends Service {
@@ -102,20 +100,13 @@ public class SSLDroid extends Service {
         notificationManager.notify(id, notification);
     }
 
-    public static class StartTask extends AsyncTask<Void, Integer, List<TcpTunnel>> {
-        private WeakReference<SSLDroid> droidRef;
-
+    public static class StartTask extends ContextAsyncTask<SSLDroid, Void, Integer, List<TcpTunnel>> {
         StartTask(SSLDroid droid) {
-            this.droidRef = new WeakReference<SSLDroid>(droid);
+            super(droid);
         }
 
         @Override
-        protected List<TcpTunnel> doInBackground(Void... voids) {
-            SSLDroid droid = droidRef.get();
-            if (droid == null) {
-                return Collections.emptyList();
-            }
-
+        protected List<TcpTunnel> doInBackground(SSLDroid droid, Void... voids) {
             SSLDroidDbAdapter dbHelper = new SSLDroidDbAdapter(droid);
             try {
                 List<TcpTunnel> tunnels = new ArrayList<TcpTunnel>();
@@ -138,11 +129,8 @@ public class SSLDroid extends Service {
         }
 
         @Override
-        protected void onPostExecute(List<TcpTunnel> tunnels) {
-            SSLDroid droid = droidRef.get();
-            if (droid != null) {
-                droid.createNotification(0, true, "SSLDroid is running", "Started and serving " + tunnels.size() + " tunnels");
-            }
+        protected void onPostExecute(SSLDroid droid, List<TcpTunnel> tunnels) {
+            droid.createNotification(0, true, "SSLDroid is running", "Started and serving " + tunnels.size() + " tunnels");
         }
     }
 }
