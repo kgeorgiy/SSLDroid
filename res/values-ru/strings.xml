@@ -1,17 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">SSLDroid</string>
-    <string name="local_port">Локальный порт</string>
-    <string name="remote_host">Удаленный сервер</string>
-    <string name="remote_port">Удаленный порт</string>
-    <string name="cert_file">Файл сертификата</string>
 
+    <string name="tunnel_name">Название</string>
+    <string name="tunnel_name_hint">Отобраается в списке</string>
+    <string name="tunnel_localPort">Локальный порт</string>
+    <string name="tunnel_localPort_hint">8080</string>
+    <string name="tunnel_remoteHost">Удаленный сервер</string>
+    <string name="tunnel_remoteHost_hint">example.com</string>
+    <string name="tunnel_remotePort">Удаленный порт</string>
+    <string name="tunnel_remotePort_hint">443</string>
+    <string name="tunnel_certFile">Файл PKCS12</string>
+    <string name="tunnel_certFile_hint">client.p12</string>
+    <string name="tunnel_pickFile">…</string>
+    <string name="tunnel_certPass">Пароль PKCS12</string>
+    <string name="tunnel_certPass_hint">Не обязательный</string>
     <string name="tunnel_apply">Применить</string>
     <string name="tunnel_test">Тест</string>
     <string name="tunnel_testing">Тестируется…</string>
 
-    <string name="pkcspass">Пароль сертификата</string>
-    <string name="connection_name">Название</string>
     <string name="add_tunnel">Добавить туннель</string>
     <string name="stop_service">Остановить</string>
     <string name="stop_service_for_good">Остановить до явного запуска</string>

@@ -133,13 +133,13 @@ public class SSLDroidTunnelDetails extends Activity {
             }
         });
 
-        name = findEditTextById(R.id.name);
-        listenPort = findEditTextById(R.id.localport);
-        targetHost = findEditTextById(R.id.remotehost);
-        targetPort = findEditTextById(R.id.remoteport);
-        keyFile = findEditTextById(R.id.pkcsfile);
-        keyPass = findEditTextById(R.id.pkcspass);
-        Button pickFile = (Button) findViewById(R.id.pickFile);
+        name = findEditTextById(R.id.tunnel_name);
+        listenPort = findEditTextById(R.id.tunnel_localPort);
+        targetHost = findEditTextById(R.id.tunnel_remoteHost);
+        targetPort = findEditTextById(R.id.tunnel_remotePort);
+        keyFile = findEditTextById(R.id.tunnel_certFile);
+        keyPass = findEditTextById(R.id.tunnel_certPass);
+        Button pickFile = (Button) findViewById(R.id.tunnel_pickFile);
 
         pickFile.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {

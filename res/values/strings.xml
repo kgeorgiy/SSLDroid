@@ -1,17 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">SSLDroid</string>
-    <string name="local_port">Local port</string>
-    <string name="remote_host">Remote host</string>
-    <string name="remote_port">Remote port</string>
-    <string name="cert_file">PKCS12 file</string>
 
+    <string name="tunnel_name">Tunnel name</string>
+    <string name="tunnel_name_hint">Shown in the list</string>
+    <string name="tunnel_localPort">Local port</string>
+    <string name="tunnel_localPort_hint">8080</string>
+    <string name="tunnel_remoteHost">Remote host</string>
+    <string name="tunnel_remoteHost_hint">example.com</string>
+    <string name="tunnel_remotePort">Remote port</string>
+    <string name="tunnel_remotePort_hint">443</string>
+    <string name="tunnel_certFile">PKCS12 file</string>
+    <string name="tunnel_certFile_hint">client.p12</string>
+    <string name="tunnel_pickFile">…</string>
+    <string name="tunnel_certPass">PKCS12 pass</string>
+    <string name="tunnel_certPass_hint">Optional</string>
     <string name="tunnel_apply">Apply</string>
     <string name="tunnel_test">Test</string>
     <string name="tunnel_testing">Testing…</string>
 
-    <string name="pkcspass">PKCS12 pass</string>
-    <string name="connection_name">Tunnel name</string>
     <string name="add_tunnel">Add tunnel</string>
     <string name="stop_service">Stop service</string>
     <string name="stop_service_for_good">Stop until explicit start</string>

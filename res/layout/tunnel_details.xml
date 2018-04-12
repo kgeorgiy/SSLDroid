@@ -1,83 +1,132 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_height="fill_parent" android:layout_width="fill_parent"
-	android:scrollbars="vertical">
-	<TableLayout android:layout_width="fill_parent"
-		android:layout_height="wrap_content" android:paddingLeft="10dip"
-		android:paddingRight="10dip">
-		<TableRow>
-			<TextView android:text="@string/connection_name"
-				android:paddingRight="10dip" android:gravity="right|center_vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:scrollbars="vertical"
+>
+    <TableLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingEnd="10dip"
+        android:paddingStart="10dip"
+    >
+        <TableRow>
+			<TextView
+                android:text="@string/tunnel_name"
+                android:gravity="end|center_vertical"
 				android:textAppearance="?android:attr/textAppearanceMedium" />
 
-			<EditText android:id="@+id/name" android:hint="Company mail server"
-				android:layout_width="fill_parent" android:layout_height="wrap_content"
-				android:singleLine="true" android:layout_weight="1" />
+			<EditText
+                android:id="@+id/tunnel_name"
+                android:inputType="text"
+                android:hint="@string/tunnel_name_hint"
+				android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+				android:singleLine="true"
+                android:layout_weight="1"/>
 		</TableRow>
 		<TableRow>
-			<TextView android:text="@string/local_port"
-				android:paddingRight="10dip" android:gravity="right|center_vertical"
+			<TextView android:text="@string/tunnel_localPort"
+                android:paddingStart="0dip"
+				android:paddingEnd="10dip"
+                android:gravity="end|center_vertical"
 				android:textAppearance="?android:attr/textAppearanceMedium" />
 
-			<EditText android:id="@+id/localport" android:hint="8080"
-				android:layout_width="fill_parent" android:layout_height="wrap_content"
-				android:layout_weight="1" android:inputType="number" />
-		</TableRow>
+            <EditText
+                android:id="@+id/tunnel_localPort"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/tunnel_localPort_hint"
+                android:inputType="number" />
+        </TableRow>
 		<TableRow>
-			<TextView android:text="@string/remote_host"
-				android:paddingRight="10dip" android:gravity="right|center_vertical"
-				android:textAppearance="?android:attr/textAppearanceMedium" />
+            <TextView
+                android:text="@string/tunnel_remoteHost"
+                android:gravity="end|center_vertical"
+                android:paddingStart="0dip"
+                android:paddingEnd="10dip"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
 
-			<EditText android:id="@+id/remotehost" android:hint="example.com"
-				android:layout_width="fill_parent" android:layout_height="wrap_content"
-				android:layout_weight="1" android:inputType="textEmailAddress" />
-		</TableRow>
+            <EditText
+                android:id="@+id/tunnel_remoteHost"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/tunnel_remoteHost_hint"
+                android:inputType="textEmailAddress" />
+        </TableRow>
 		<TableRow>
-			<TextView android:text="@string/remote_port"
-				android:paddingRight="10dip" android:gravity="right|center_vertical"
+			<TextView
+                android:text="@string/tunnel_remotePort"
+                android:paddingStart="0dip"
+				android:paddingEnd="10dip"
+                android:gravity="end|center_vertical"
 				android:textAppearance="?android:attr/textAppearanceMedium" />
 
-			<EditText android:id="@+id/remoteport" android:hint="443"
-				android:layout_width="fill_parent" android:layout_height="wrap_content"
-				android:layout_weight="1" android:inputType="number" />
-		</TableRow>
+            <EditText
+                android:id="@+id/tunnel_remotePort"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/tunnel_remotePort_hint"
+                android:inputType="number" />
+        </TableRow>
 		<TableRow>
-			<TextView android:text="@string/cert_file"
-				android:paddingRight="10dip" android:gravity="right|center_vertical"
-				android:textAppearance="?android:attr/textAppearanceMedium" />
+            <TextView
+                android:text="@string/tunnel_certFile"
+                android:gravity="end|center_vertical"
+                android:paddingStart="0dip"
+                android:paddingEnd="10dip"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
 
-			<EditText android:id="@+id/pkcsfile" android:hint="client.p12"
-				android:layout_width="fill_parent" android:layout_height="wrap_content"
-				android:layout_weight="1" android:inputType="textEmailAddress" />
-			<Button android:text="..." android:layout_width="wrap_content" android:id="@+id/pickFile" android:layout_height="wrap_content"></Button>
-			
-		</TableRow>
+            <EditText
+                android:id="@+id/tunnel_certFile"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/tunnel_certFile_hint"
+                android:inputType="textEmailAddress" />
+
+            <Button
+                android:id="@+id/tunnel_pickFile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/tunnel_pickFile" />
+        </TableRow>
 		<TableRow>
-			<TextView android:text="@string/pkcspass"
-				android:paddingRight="10dip" android:gravity="right|center_vertical"
-				android:textAppearance="?android:attr/textAppearanceMedium" />
+			<TextView
+                android:text="@string/tunnel_certPass"
+                android:paddingStart="0dip"
+				android:paddingEnd="10dip"
+                android:gravity="end|center_vertical"
+				android:textAppearance="?android:attr/textAppearanceMedium"/>
 
-			<EditText android:id="@+id/pkcspass" android:layout_width="fill_parent"
-				android:layout_height="wrap_content" android:layout_weight="1"
-				android:password="true" android:hint="Not mandatory" />
-		</TableRow>
+            <EditText
+                android:id="@+id/tunnel_certPass"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/tunnel_certPass_hint"
+                android:inputType="textPassword" />
+        </TableRow>
         <TableRow android:gravity="center">
             <Button
                 android:id="@+id/tunnel_test"
-                android:text="@string/tunnel_test"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:gravity="center"
-                android:textAppearance="?android:attr/textAppearanceMedium"/>
+                android:text="@string/tunnel_test"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
         </TableRow>
         <TableRow android:gravity="center">
             <Button
                 android:id="@+id/tunnel_apply"
-                android:text="@string/tunnel_apply"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:gravity="center"
-                android:textAppearance="?android:attr/textAppearanceMedium"/>
+                android:text="@string/tunnel_apply"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
         </TableRow>
 	</TableLayout>
 </ScrollView>
