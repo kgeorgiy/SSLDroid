@@ -163,7 +163,7 @@ public class SSLDroidGui extends ListActivity {
             ids.add(tunnel.id);
         }
 
-        setListAdapter(new ArrayAdapter<String>(this, R.layout.tunnel_list_item, R.id.text1, names) {
+        setListAdapter(new ArrayAdapter<String>(this, R.layout.tunnel_list_item, R.id.tunnel_listItem, names) {
             @Override
             public long getItemId(int position) {
                 return ids.get(position);

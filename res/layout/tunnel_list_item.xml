@@ -1,14 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_height="wrap_content" android:orientation="vertical"
-	android:gravity="left|center_vertical" android:layout_width="fill_parent"
-	android:padding="10dip">
-	<TextView android:layout_width="fill_parent"
-		android:layout_height="wrap_content" android:textAppearance="?android:attr/textAppearanceLarge"
-		android:text="Tunnel Nickname" android:layout_alignParentTop="true"
-		android:layout_alignParentLeft="true" android:id="@+id/text1"/>
-	<!--  <TextView android:layout_width="wrap_content"
-		android:layout_height="wrap_content" android:textAppearance="?android:attr/textAppearanceSmall"
-		android:text="Local port 8080 to 192.168.1.1:80" android:layout_below="@+id/text1" android:id="@+id/text2"/> -->
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:gravity="start|center_vertical"
+    android:orientation="vertical"
+    android:padding="10dip"
+>
+    <TextView
+        android:id="@+id/tunnel_listItem"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:text="@string/tunnel_name"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <!--<TextView-->
+        <!--android:id="@+id/text2"-->
+        <!--android:text="Local port 8080 to 192.168.1.1:80"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_below="@+id/text1"-->
+        <!--android:textAppearance="?android:attr/textAppearanceSmall" />-->
 </RelativeLayout>
 
