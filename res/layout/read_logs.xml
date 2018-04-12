@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-    <ScrollView android:id="@+id/scrollView1" android:layout_width="fill_parent" android:layout_height="fill_parent" xmlns:android="http://schemas.android.com/apk/res/android" android:focusableInTouchMode="true" android:focusable="true" android:longClickable="false">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:inputType="none" android:id="@+id/logTextView" android:text="@string/reading_logs"/>
-    </ScrollView>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/readLogs_view"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:longClickable="false"
+>
+    <TextView
+        android:id="@+id/readLogs_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:inputType="none"/>
+</ScrollView>

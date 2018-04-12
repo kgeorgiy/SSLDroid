@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">SSLDroid</string>
+    <string name="no_tunnels">Нет сконфигурированных туннелей</string>
 
     <string name="tunnel_name">Название</string>
     <string name="tunnel_name_hint">Отобраается в списке</string>
@@ -43,8 +44,6 @@
     <string name="tunnelMenu_delete">Удалить туннель</string>
     <string name="tunnelMenu_clone">Сделать копию</string>
 
-    <string name="no_tunnels">Нет сконфигурированных туннелей</string>
-    <string name="reading_logs">Просмотр логов</string>
-    <string name="refresh">Обновить</string>
-    <string name="share">Послать</string>
+    <string name="readLogs_menu_refresh">Обновить</string>
+    <string name="readLogs_menu_share">Послать</string>
 </resources>

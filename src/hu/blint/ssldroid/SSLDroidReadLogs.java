@@ -21,10 +21,10 @@ public class SSLDroidReadLogs extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.readLogs_refresh:
+            case R.id.readLogs_menu_refresh:
                 refreshLogs();
                 return true;
-            case R.id.readLogs_share:
+            case R.id.readLogs_menu_share:
                 shareLogs();
                 return true;
         }
@@ -39,7 +39,7 @@ public class SSLDroidReadLogs extends Activity {
     }
 
     public void refreshLogs() {
-        TextView logcontainer = (TextView) findViewById(R.id.logTextView);
+        TextView logcontainer = (TextView) findViewById(R.id.readLogs_text);
         logcontainer.setText("");
         Process mLogcatProc = null;
         BufferedReader reader = null;
@@ -70,7 +70,7 @@ public class SSLDroidReadLogs extends Activity {
 
     public void shareLogs() {
         Intent sendIntent = new Intent();
-        TextView logcontainer = (TextView) findViewById(R.id.logTextView);
+        TextView logcontainer = (TextView) findViewById(R.id.readLogs_text);
         CharSequence logdata = logcontainer.getText();
 
         sendIntent.setAction(Intent.ACTION_SEND);

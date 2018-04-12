@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">SSLDroid</string>
+    <string name="no_tunnels">No tunnels configured yet</string>
 
     <string name="tunnel_name">Tunnel name</string>
     <string name="tunnel_name_hint">Shown in the list</string>
@@ -43,8 +44,6 @@
     <string name="tunnelMenu_delete">Delete tunnel</string>
     <string name="tunnelMenu_clone">Clone tunnel</string>
 
-    <string name="no_tunnels">No tunnels configured yet</string>
-    <string name="reading_logs">Reading log messages&#8230;</string>
-    <string name="refresh">Refresh</string>
-    <string name="share">Share logs</string>
+    <string name="readLogs_menu_refresh">Refresh</string>
+    <string name="readLogs_menu_share">Share logs</string>
 </resources>

@@ -2,15 +2,15 @@
 
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/readLogs_refresh"
+        android:id="@+id/readLogs_menu_refresh"
         android:icon="@android:drawable/ic_menu_rotate"
-        android:title="@string/refresh"
+        android:title="@string/readLogs_menu_refresh"
         android:enabled="true"
         android:showAsAction="ifRoom"/>
     <item
-        android:id="@+id/readLogs_share"
+        android:id="@+id/readLogs_menu_share"
         android:icon="@android:drawable/ic_menu_share"
-        android:title="@string/share"
+        android:title="@string/readLogs_menu_share"
         android:enabled="true"
         android:showAsAction="ifRoom"/>
 </menu>
