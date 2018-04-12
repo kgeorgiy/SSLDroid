@@ -26,4 +26,10 @@
         android:title="@string/menu_readlogs"
         android:icon="@android:drawable/ic_menu_agenda"
         android:enabled="true"/>
+    <item
+        android:id="@+id/settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:title="@string/main_settings"
+        android:enabled="true"
+        android:showAsAction="ifRoom"/>
 </menu>

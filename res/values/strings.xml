@@ -25,4 +25,7 @@
     <string name="refresh">Refresh</string>
     <string name="share">Share logs</string>
     <string name="menu_clone">Clone tunnel</string>
+    <string name="preferences_showNotifications">Show notifications</string>
+    <string name="preferences_showNotificationsSummary">Show persistent notifications when some tunnels is running</string>
+    <string name="main_settings">settings</string>
 </resources>

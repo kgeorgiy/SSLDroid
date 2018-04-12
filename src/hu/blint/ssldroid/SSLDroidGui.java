@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import hu.blint.ssldroid.db.SSLDroidDbAdapter;
+import hu.blint.ssldroid.ui.SettingsActivity;
 
 public class SSLDroidGui extends ListActivity {
     private static final int ACTIVITY_CREATE = 0;
@@ -78,6 +79,9 @@ public class SSLDroidGui extends ListActivity {
         case R.id.readlogs:
             readLogs();
             return true;
+        case R.id.settings:
+            showSettings();
+            return true;
         }
         return false;
     }
@@ -111,8 +115,11 @@ public class SSLDroidGui extends ListActivity {
     }
     
     private void readLogs() {
-        Intent i = new Intent(this, SSLDroidReadLogs.class);
-        startActivity(i);
+        startActivity(new Intent(this, SSLDroidReadLogs.class));
+    }
+
+    private void showSettings() {
+        startActivity(new Intent(this, SettingsActivity.class));
     }
 
     // ListView and view (row) on which was clicked, position and

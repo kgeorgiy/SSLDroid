@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 
 import hu.blint.ssldroid.db.SSLDroidDbAdapter;
+import hu.blint.ssldroid.ui.Settings;
 
 public class SSLDroid extends Service {
     private List<TcpTunnel> tunnels = new ArrayList<TcpTunnel>();
@@ -74,6 +75,10 @@ public class SSLDroid extends Service {
     }
 
     public void createNotification(int id, boolean persistent, String title, String text) {
+        if (!Settings.isShowNotifications(this)) {
+            return;
+        }
+
         Intent intent = new Intent(this, SSLDroidGui.class);
         PendingIntent activity = PendingIntent.getActivity(this, 0, intent, 0);
         Notification.Builder builder = new Notification.Builder(this)

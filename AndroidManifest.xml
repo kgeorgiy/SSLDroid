@@ -1,37 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	package="hu.blint.ssldroid" android:versionCode="17"
-	android:versionName="1.2.6">
-	<uses-sdk android:minSdkVersion="17" android:targetSdkVersion="27" />
-	<permission android:name="hu.blint.ssldroid.permission.startstop" android:protectionLevel="normal" android:label="Start and stop the SSLDroid service" />
+    package="hu.blint.ssldroid" android:versionCode="17"
+    android:versionName="1.2.6">
+    <uses-sdk android:minSdkVersion="17" android:targetSdkVersion="27" />
+    <permission android:name="hu.blint.ssldroid.permission.startstop" android:protectionLevel="normal" android:label="Start and stop the SSLDroid service" />
     <uses-permission android:name="hu.blint.ssldroid.permission.startstop" />
-	<uses-permission android:name="android.permission.INTERNET" />
-	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-	<application android:label="@string/app_name" android:icon="@drawable/icon" android:allowBackup="true">
-		<activity android:name="SSLDroidGui" android:label="@string/app_name">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity>
-		<activity android:name=".SSLDroidTunnelDetails"
-			android:windowSoftInputMode="stateVisible|adjustResize" />
-		<activity android:name=".SSLDroidReadLogs" />
-		<service android:enabled="true" android:name="SSLDroid" android:permission="hu.blint.ssldroid.permission.startstop">
-			<intent-filter>
-				<action android:name="hu.blint.ssldroid.SSLDroid" />
-			</intent-filter>
-		</service>
-		<receiver android:name=".EventReceiver">
-			<intent-filter>
-				<action android:name="android.intent.action.BOOT_COMPLETED" />
-				<category android:name="android.intent.category.HOME" />
-			</intent-filter>
-			<intent-filter>
-				<action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
-			</intent-filter>
-		</receiver>
-	</application>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <application android:label="@string/app_name" android:icon="@drawable/icon" android:allowBackup="true">
+        <activity android:name="SSLDroidGui" android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".SSLDroidTunnelDetails"
+            android:windowSoftInputMode="stateVisible|adjustResize" />
+        <activity android:name=".SSLDroidReadLogs" />
+        <activity android:name=".ui.SettingsActivity" />
+
+        <service android:enabled="true" android:name="SSLDroid" android:permission="hu.blint.ssldroid.permission.startstop">
+            <intent-filter>
+                <action android:name="hu.blint.ssldroid.SSLDroid" />
+            </intent-filter>
+        </service>
+        <receiver android:name=".EventReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <category android:name="android.intent.category.HOME" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+            </intent-filter>
+        </receiver>
+    </application>
 </manifest>
