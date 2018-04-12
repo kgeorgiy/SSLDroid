@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -12,6 +13,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 public class SSLDroidReadLogs extends Activity {
+
+    private ScrollView scrollView;
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.read_logs, menu);
@@ -35,6 +39,7 @@ public class SSLDroidReadLogs extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.read_logs);
+        scrollView = (ScrollView) findViewById(R.id.readLogs_view);
         refreshLogs();
     }
 
@@ -66,6 +71,12 @@ public class SSLDroidReadLogs extends Activity {
                     Log.d("Logcat problem: "+e.toString());
                 }
         }
+        scrollView.post(new Runnable() {
+            @Override
+            public void run() {
+                scrollView.fullScroll(ScrollView.FOCUS_DOWN);
+            }
+        });
     }
 
     public void shareLogs() {
