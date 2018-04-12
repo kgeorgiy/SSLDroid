@@ -13,6 +13,7 @@
     <string name="tunnel_certFile">Файл PKCS12</string>
     <string name="tunnel_certFile_hint">client.p12</string>
     <string name="tunnel_pickFile">…</string>
+    <string name="tunnel_pickFile_dialogTitle">Загрузить сертификат с SD карты</string>
     <string name="tunnel_certPass">Пароль PKCS12</string>
     <string name="tunnel_certPass_hint">Не обязательный</string>
     <string name="tunnel_apply">Применить</string>
@@ -26,17 +27,20 @@
     <string name="preferences_showTunnelInfo">Отображать свойства туннеля</string>
     <string name="preferences_showTunnelInfo_summary" >В списке туннелей</string>
 
+    <string name="fileChooser_sdCardAbsent">Отсутствует SD карта</string>
+    <string name="fileChooser_emptyDirectory">Пустой каталог</string>
+    <string name="fileChooser_fileName_format">%s</string>
+    <string name="fileChooser_dirName_format">%s (…)</string>
+    <string name="fileChooser_back">Назад</string>
+
     <string name="add_tunnel">Добавить туннель</string>
     <string name="stop_service">Остановить</string>
     <string name="stop_service_for_good">Остановить до явного запуска</string>
     <string name="start_service">Запустить</string>
     <string name="no_tunnels">Нет сконфигурированных туннелей</string>
     <string name="menu_delete">Удалить туннель</string>
-    <string name="pkcsfile_pick">Загрузить сертификат с SD карты</string>
-    <string name="alert_sdcard_absent">Отсутствует SD карта</string>
     <string name="menu_readlogs">Просмотр логов</string>
     <string name="reading_logs">Просмотр логов</string>
-    <string name="back">Назад</string>
     <string name="refresh">Обновить</string>
     <string name="share">Послать</string>
     <string name="menu_clone">Сделать копию</string>

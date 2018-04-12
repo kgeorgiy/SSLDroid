@@ -1,14 +1,10 @@
 package hu.blint.ssldroid;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -17,14 +13,10 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
 
 import hu.blint.ssldroid.db.SSLDroidDbAdapter;
 import hu.blint.ssldroid.ui.ContextAsyncTask;
+import hu.blint.ssldroid.ui.FileChooser;
 import hu.blint.ssldroid.ui.Settings;
 
 //TODO: cacert + crl should be configurable for the tunnel
@@ -41,6 +33,7 @@ public class SSLDroidTunnelDetails extends Activity {
 
     private Button testButton;
     private Button applyButton;
+    private FileChooser fileChooser;
 
     private static class HostnameChecker extends ContextAsyncTask<SSLDroidTunnelDetails, String, Void, Boolean> {
         HostnameChecker(SSLDroidTunnelDetails details) {
@@ -133,6 +126,14 @@ public class SSLDroidTunnelDetails extends Activity {
             }
         });
 
+        fileChooser = new FileChooser(getString(R.string.tunnel_pickFile_dialogTitle), this, new FileChooser.Listener() {
+            @Override
+            public void fileChosen(File file) {
+                keyFile.setText(file.getAbsolutePath());
+                keyPass.requestFocus();
+            }
+        });
+
         name = findEditTextById(R.id.tunnel_name);
         listenPort = findEditTextById(R.id.tunnel_localPort);
         targetHost = findEditTextById(R.id.tunnel_remoteHost);
@@ -143,7 +144,7 @@ public class SSLDroidTunnelDetails extends Activity {
 
         pickFile.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
-                pickFileSimple();
+                fileChooser.pickFileSimple();
             }
         });
 
@@ -166,97 +167,6 @@ public class SSLDroidTunnelDetails extends Activity {
         return (EditText) findViewById(name);
     }
 
-    final List<File> getFileNames(File url, File baseurl)
-    {
-        final List<File> names = new LinkedList<File>();
-        File[] files = url.listFiles();
-        if (files != null && files.length > 0) {
-            for (File file : url.listFiles()) {
-                if (file.getName().startsWith("."))
-                    continue;
-                names.add(file);
-            }
-        }
-        return names;
-    }
-
-    private void showFiles(final List<File> names, final File baseurl) {
-        final String[] namesList = new String[names.size()]; // = names.toArray(new String[] {});
-        ListIterator<File> filelist = names.listIterator();
-        int i = 0;
-        while (filelist.hasNext()) {
-            File file = filelist.next();
-            if (file.isDirectory())
-                namesList[i] = file.getAbsolutePath().replaceFirst(baseurl+"/", "")+" (...)";
-            else
-                namesList[i] = file.getAbsolutePath().replaceFirst(baseurl+"/", "");
-            i++;
-        }
-        Log.d("Gathered file names: "+ Arrays.toString(namesList));
-
-        // prompt user to select any file from the sdcard root
-        new AlertDialog.Builder(SSLDroidTunnelDetails.this)
-        .setTitle(R.string.pkcsfile_pick)
-        .setItems(namesList, new OnClickListener() {
-            public void onClick(DialogInterface arg0, int arg1) {
-                File name = names.get(arg1);
-                if (name.isDirectory()) {
-                    List<File> names_ = getFileNames(name, baseurl);
-                    Collections.sort(names_);
-                    if (names_.size() > 0) {
-                        showFiles(names_, baseurl);
-                    }
-                    else
-                        message("Empty directory");
-                }
-                if (name.isFile()) {
-                    keyFile.setText(name.getAbsolutePath());
-                    keyPass.requestFocus();
-                }
-            }
-        })
-        //create a Back button (shouldn't go above base URL)
-        .setNeutralButton(R.string.back, new OnClickListener() {
-            public void onClick(DialogInterface arg0, int arg1) {
-                if (names.size() == 0)
-                    return;
-                File name = names.get(0);
-                if (!name.getParentFile().equals(baseurl)) {
-                    List<File> names_ = getFileNames(name.getParentFile().getParentFile(), baseurl);
-                    Collections.sort(names_);
-                    if (names_.size() > 0) {
-                        showFiles(names_, baseurl);
-                    }
-                    else
-                        return;
-                }
-            }
-        })
-        .setNegativeButton(android.R.string.cancel, null).create().show();
-    }
-
-    //pick a file from /sdcard, courtesy of ConnectBot
-    private void pickFileSimple() {
-        // build list of all files in sdcard root
-        final File sdcard = Environment.getExternalStorageDirectory();
-        Log.d("SD Card location: "+sdcard.toString());
-
-        // Don't show a dialog if the SD card is completely absent.
-        final String state = Environment.getExternalStorageState();
-        if (!Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)
-                && !Environment.MEDIA_MOUNTED.equals(state)) {
-            new AlertDialog.Builder(SSLDroidTunnelDetails.this)
-            .setMessage(R.string.alert_sdcard_absent)
-            .setNegativeButton(android.R.string.cancel, null).create().show();
-            return;
-        }
-
-        List<File> names = new LinkedList<File>();
-        names = getFileNames(sdcard, sdcard);
-        Collections.sort(names);
-        showFiles(names, sdcard);
-    }
-
     private void populateFields() {
         if (rowId != NO_ROW_ID) {
             final TunnelConfig tunnel = dbHelper.fetchTunnel(rowId);
@@ -275,7 +185,6 @@ public class SSLDroidTunnelDetails extends Activity {
     private void message(String message) {
         Toast.makeText(getBaseContext(), message, Toast.LENGTH_LONG).show();
     }
-
 
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
