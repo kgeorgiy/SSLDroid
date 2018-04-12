@@ -3,7 +3,12 @@
     <CheckBoxPreference
         android:key="preferences_showNotifications"
         android:title="@string/preferences_showNotifications"
-        android:summary="@string/preferences_showNotificationsSummary"
+        android:summary="@string/preferences_showNotifications_summary"
+        android:defaultValue="true" />
+    <CheckBoxPreference
+        android:key="preferences_showTunnelInfo"
+        android:title="@string/preferences_showTunnelInfo"
+        android:summary="@string/preferences_showTunnelInfo_summary"
         android:defaultValue="true" />
     <hu.blint.ssldroid.ui.TimeoutPreference
         android:key="preferences_connectionTimeout"

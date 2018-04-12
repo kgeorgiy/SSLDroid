@@ -9,14 +9,18 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.SimpleAdapter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import hu.blint.ssldroid.db.SSLDroidDbAdapter;
+import hu.blint.ssldroid.ui.Settings;
 import hu.blint.ssldroid.ui.SettingsActivity;
 
 public class SSLDroidGui extends ListActivity {
@@ -24,6 +28,10 @@ public class SSLDroidGui extends ListActivity {
     private static final int ACTIVITY_EDIT = 1;
     private static final int DELETE_ID = Menu.FIRST + 1;
     private static final int CLONE_ID = Menu.FIRST + 2;
+    public static final String NAME = "" + R.id.tunnelList_name;
+    public static final String INFO = "" + R.id.tunnelList_info;
+    public static final String[] NAMES = {NAME, INFO};
+    public static final int[] IDS = {R.id.tunnelList_name, R.id.tunnelList_info};
 
     private SSLDroidDbAdapter dbHelper;
 
@@ -130,7 +138,7 @@ public class SSLDroidGui extends ListActivity {
     }
 
     private void showSettings() {
-        startActivity(new Intent(this, SettingsActivity.class));
+        startActivityForResult(new Intent(this, SettingsActivity.class), 0);
     }
 
     // ListView and view (row) on which was clicked, position and
@@ -156,17 +164,27 @@ public class SSLDroidGui extends ListActivity {
     }
 
     private void fillData() {
-        final List<String> names = new ArrayList<String>();
         final List<Long> ids = new ArrayList<Long>();
-        for (TunnelConfig tunnel : dbHelper.fetchAllTunnels()) {
-            names.add(tunnel.name);
+        List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
+        for (TunnelConfig tunnel : dbHelper.fetchAllTunnels()  ) {
+            Map<String, Object> item = new HashMap<String, Object>();
+            item.put(NAME, tunnel.name);
+            item.put(INFO, tunnel.listenPort + ":" + tunnel.targetHost + ":" + tunnel.targetPort);
+            items.add(item);
             ids.add(tunnel.id);
         }
-
-        setListAdapter(new ArrayAdapter<String>(this, R.layout.tunnel_list_item, R.id.tunnel_listItem, names) {
+        final int visibility = Settings.isShowTunnelInfo(this) ? View.VISIBLE : View.GONE;
+        setListAdapter(new SimpleAdapter(this, items, R.layout.tunnel_list_item, NAMES, IDS) {
             @Override
             public long getItemId(int position) {
                 return ids.get(position);
+            }
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                view.findViewById(R.id.tunnelList_info).setVisibility(visibility);
+                return view;
             }
         });
     }

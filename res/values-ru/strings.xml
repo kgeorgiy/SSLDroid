@@ -19,6 +19,12 @@
     <string name="tunnel_test">Тест</string>
     <string name="tunnel_testing">Тестируется…</string>
 
+    <string name="preferences_showNotifications">Показывать уведомления</string>
+    <string name="preferences_showNotifications_summary">когда сервис запущен</string>
+    <string name="preferences_connectionTimeout">Таймаут соединения (мс)</string>
+    <string name="preferences_showTunnelInfo">Отображать свойства туннеля</string>
+    <string name="preferences_showTunnelInfo_summary" >В списке туннелей</string>
+
     <string name="add_tunnel">Добавить туннель</string>
     <string name="stop_service">Остановить</string>
     <string name="stop_service_for_good">Остановить до явного запуска</string>
@@ -33,8 +39,5 @@
     <string name="refresh">Обновить</string>
     <string name="share">Послать</string>
     <string name="menu_clone">Сделать копию</string>
-    <string name="preferences_showNotifications">Показывать уведомления</string>
-    <string name="preferences_showNotificationsSummary">когда сервис запущен</string>
     <string name="main_settings">Настройки</string>
-    <string name="preferences_connectionTimeout">Таймаут соединения (мс)</string>
 </resources>
