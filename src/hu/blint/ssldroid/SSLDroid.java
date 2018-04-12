@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -20,6 +21,43 @@ import hu.blint.ssldroid.ui.Settings;
 
 public class SSLDroid extends Service {
     private List<TcpTunnel> tunnels = new ArrayList<TcpTunnel>();
+
+    private static boolean started = false;
+
+    public static boolean isStarted() {
+        return started;
+    }
+
+    private static boolean isStopped(Context context){
+        SSLDroidDbAdapter dbHelper = new SSLDroidDbAdapter(context);
+        try {
+            return dbHelper.getStopStatus();
+        } finally {
+            dbHelper.close();
+        }
+    }
+
+    public static void startIfNeeded(Context context) {
+        if (!isStopped(context)) {
+            start(context);
+        } else {
+            Log.w("Not starting service as directed by explicit close");
+        }
+    }
+
+    public static void start(Context context) {
+        if (!started) {
+            started = true;
+            context.startService(new Intent(context, SSLDroid.class));
+        }
+    }
+
+    public static void stop(Context context) {
+        if (started) {
+            context.stopService(new Intent(context, SSLDroid.class));
+            started = false;
+        }
+    }
 
     @Override
     public void onCreate() {

@@ -38,11 +38,16 @@ public class SSLDroidGui extends ListActivity {
         registerForContextMenu(getListView());
     }
 
-    // Create the menu based on the XML defintion
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main, menu);
+
+        final boolean running = SSLDroid.isStarted();
+        menu.findItem(R.id.service_start).setVisible(!running);
+        menu.findItem(R.id.service_stop).setVisible(running);
+        menu.findItem(R.id.service_stop_permanently).setVisible(running);
+
         return true;
     }
 
@@ -62,19 +67,20 @@ public class SSLDroidGui extends ListActivity {
         case R.id.addtunnel:
             createTunnel();
             return true;
-        case R.id.stopservice:
+        case R.id.service_stop:
             Log.d("Stopping service");
-            stopService(new Intent(this, SSLDroid.class));
+            stopService();
             return true;
-        case R.id.stopserviceforgood:
+        case R.id.service_stop_permanently:
             Log.d("Stopping service until explicitly started");
             dbHelper.setStopStatus();
-            stopService(new Intent(this, SSLDroid.class));
+            stopService();
             return true;
-        case R.id.startservice:
+        case R.id.service_start:
             Log.d("Starting service");
             dbHelper.clearStopStatus();
-            startService(new Intent(this, SSLDroid.class));
+            SSLDroid.start(this);
+            invalidateOptionsMenu();
             return true;
         case R.id.readlogs:
             readLogs();
@@ -84,6 +90,11 @@ public class SSLDroidGui extends ListActivity {
             return true;
         }
         return false;
+    }
+
+    private void stopService() {
+        SSLDroid.stop(this);
+        invalidateOptionsMenu();
     }
 
     @Override

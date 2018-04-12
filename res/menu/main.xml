@@ -8,19 +8,19 @@
         android:enabled="true"
         android:showAsAction="ifRoom"/>
     <item
-        android:id="@+id/startservice"
+        android:id="@+id/service_start"
         android:title="@string/start_service"
         android:icon="@android:drawable/ic_media_play"
         android:enabled="true"
         android:showAsAction="ifRoom"/>
     <item
-        android:id="@+id/stopservice"
+        android:id="@+id/service_stop"
         android:title="@string/stop_service"
         android:icon="@*android:drawable/ic_media_stop"
         android:enabled="true"
         android:showAsAction="ifRoom"/>
     <item
-        android:id="@+id/stopserviceforgood"
+        android:id="@+id/service_stop_permanently"
         android:title="@string/stop_service_for_good"
         android:icon="@android:drawable/ic_menu_close_clear_cancel"
         android:enabled="true"/>
