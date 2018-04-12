@@ -5,7 +5,11 @@
     <string name="remote_host">Remote host</string>
     <string name="remote_port">Remote port</string>
     <string name="cert_file">PKCS12 file</string>
-    <string name="apply">Apply</string>
+
+    <string name="tunnel_apply">Apply</string>
+    <string name="tunnel_test">Test</string>
+    <string name="tunnel_testing">Testing…</string>
+
     <string name="pkcspass">PKCS12 pass</string>
     <string name="connection_name">Tunnel name</string>
     <string name="add_tunnel">Add tunnel</string>

@@ -1,6 +1,7 @@
 package hu.blint.ssldroid;
 
 public class TunnelConfig {
+
     public final long id;
     public final String name;
     public final int listenPort;
@@ -23,4 +24,5 @@ public class TunnelConfig {
     public String toString() {
         return name + " " + listenPort + ":" + targetHost + ":" + targetPort;
     }
+
 }

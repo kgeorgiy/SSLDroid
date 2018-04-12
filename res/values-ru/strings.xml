@@ -5,7 +5,11 @@
     <string name="remote_host">Удаленный сервер</string>
     <string name="remote_port">Удаленный порт</string>
     <string name="cert_file">Файл сертификата</string>
-    <string name="apply">Применить</string>
+
+    <string name="tunnel_apply">Применить</string>
+    <string name="tunnel_test">Тест</string>
+    <string name="tunnel_testing">Тестируется…</string>
+
     <string name="pkcspass">Пароль сертификата</string>
     <string name="connection_name">Название</string>
     <string name="add_tunnel">Добавить туннель</string>

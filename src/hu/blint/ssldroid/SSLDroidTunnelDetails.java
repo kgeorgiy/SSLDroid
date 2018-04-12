@@ -1,31 +1,11 @@
 package hu.blint.ssldroid;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-
-import javax.security.cert.X509Certificate;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Environment;
@@ -33,6 +13,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+
 import hu.blint.ssldroid.db.SSLDroidDbAdapter;
 import hu.blint.ssldroid.ui.ContextAsyncTask;
 
@@ -44,9 +34,13 @@ public class SSLDroidTunnelDetails extends Activity {
 
     private static final int INVALID_PORT = Integer.MIN_VALUE;
     private static final int NO_PORT = Integer.MIN_VALUE + 1;
+
     public static final String ROW_ID = "rowId";
     public static final String DO_CLONE = "doClone";
     public static final int NO_ROW_ID = -1;
+
+    private Button testButton;
+    private Button applyButton;
 
     private static class HostnameChecker extends ContextAsyncTask<SSLDroidTunnelDetails, String, Void, Boolean> {
         HostnameChecker(SSLDroidTunnelDetails details) {
@@ -71,48 +65,32 @@ public class SSLDroidTunnelDetails extends Activity {
         @Override
         protected void onPostExecute(SSLDroidTunnelDetails details, Boolean result) {
             if (!result) {
-                details.error("Remote host not found, please recheck...");
+                details.message("Remote host not found, please recheck...");
             }
         }
     }
 
-    private final class SSLDroidTunnelValidator implements View.OnClickListener {
-        public void onClick(View view) {
-            TunnelConfig tunnel = parseTunnel();
+    private static class TunnelChecker extends ContextAsyncTask<SSLDroidTunnelDetails, TunnelConfig, Void, String> {
+        TunnelChecker(SSLDroidTunnelDetails details) {
+            super(details);
+        }
 
-            if (tunnel.name.isEmpty()) {
-                error("Required tunnel name parameter not set up, skipping save");
-            } else if (tunnel.listenPort == NO_PORT) {
-                error("Required local port parameter not set up, skipping save");
-            } else if (tunnel.listenPort == INVALID_PORT) {
-                error("Local port parameter has invalid number format");
-            } else if (tunnel.listenPort < 1025 || tunnel.listenPort > 65535) {
-                error("Local port parameter not in valid range (1025-65535)");
-            } else if (hasDuplicates(tunnel.listenPort)) {
-                // Error
-            } else if (tunnel.targetPort == NO_PORT) {
-                error("Required remote host parameter not set up, skipping save");
-            } else if (tunnel.targetPort == INVALID_PORT) {
-                error("Remote port parameter has invalid number format");
-            } else if (tunnel.targetPort < 1 || tunnel.targetPort > 65535) {
-                error("Remote port parameter not in valid range (1-65535)");
-            } else if (checkKeys(tunnel)) {
-                new HostnameChecker(SSLDroidTunnelDetails.this).execute(tunnel.targetHost);
-                saveState();
-                setResult(RESULT_OK);
-                finish();
-
+        @Override
+        protected String doInBackground(SSLDroidTunnelDetails details, TunnelConfig... tunnels) {
+            try {
+                new ActiveTunnel(tunnels[0]).connect(5000).close();
+                return "Test success";
+            } catch (IOException e) {
+                return "Cannot establish connection: " + e.getMessage();
+            } catch (TunnelException e) {
+                return "Invalid tunnel configuration: " + e.getMessage();
             }
         }
 
-        private boolean hasDuplicates(int listenPort) {
-            for (TunnelConfig tunnel : dbHelper.fetchAllTunnels()) {
-                if (listenPort == tunnel.listenPort && rowId != tunnel.id) {
-                    error("Local port already configured in tunnel '"+ tunnel.name +"', please change...");
-                    return true;
-                }
-            }
-            return false;
+        @Override
+        protected void onPostExecute(SSLDroidTunnelDetails details, String error) {
+            details.message(error);
+            details.setTesting(false);
         }
     }
 
@@ -132,7 +110,31 @@ public class SSLDroidTunnelDetails extends Activity {
         dbHelper = new SSLDroidDbAdapter(this);
         setContentView(R.layout.tunnel_details);
 
-        Button confirmButton = (Button) findViewById(R.id.tunnel_apply_button);
+        applyButton = (Button) findViewById(R.id.tunnel_apply);
+        applyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TunnelConfig tunnel = parseTunnel();
+                isValid(tunnel);
+                new HostnameChecker(SSLDroidTunnelDetails.this).execute(tunnel.targetHost);
+                saveState();
+                setResult(RESULT_OK);
+                finish();
+            }
+        });
+
+        testButton = (Button) findViewById(R.id.tunnel_test);
+        testButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TunnelConfig tunnel = parseTunnel();
+                if (isValid(tunnel)) {
+                    setTesting(true);
+                    new TunnelChecker(SSLDroidTunnelDetails.this).execute(tunnel);
+                }
+            }
+        });
+
         name = findEditTextById(R.id.name);
         listenPort = findEditTextById(R.id.localport);
         targetHost = findEditTextById(R.id.remotehost);
@@ -154,7 +156,12 @@ public class SSLDroidTunnelDetails extends Activity {
             doClone = extras.getBoolean(DO_CLONE, false);
         }
         populateFields();
-        confirmButton.setOnClickListener(new SSLDroidTunnelValidator());
+    }
+
+    private void setTesting(boolean testing) {
+        applyButton.setEnabled(!testing);
+        testButton.setEnabled(!testing);
+        testButton.setText(testing ? R.string.tunnel_testing : R.string.tunnel_test);
     }
 
     private EditText findEditTextById(int name) {
@@ -202,7 +209,7 @@ public class SSLDroidTunnelDetails extends Activity {
                         showFiles(names_, baseurl);
                     }
                     else
-                        error("Empty directory");
+                        message("Empty directory");
                 }
                 if (name.isFile()) {
                     keyFile.setText(name.getAbsolutePath());
@@ -267,53 +274,9 @@ public class SSLDroidTunnelDetails extends Activity {
         }
     }
 
-    public boolean checkKeys(TunnelConfig tunnel) {
-        if (tunnel.keyFile.isEmpty()) {
-            return true;
-        }
-
-        try {
-            FileInputStream in = new FileInputStream(tunnel.keyFile);
-            try {
-                KeyStore store = KeyStore.getInstance("PKCS12");
-                char[] password = tunnel.keyPass.toCharArray();
-                store.load(in, password);
-
-                Enumeration<String> eAliases = store.aliases();
-                while (eAliases.hasMoreElements()) {
-                    String alias = eAliases.nextElement();
-                    if (store.isKeyEntry(alias)) {
-                        // try to retrieve the private key part from PKCS12 certificate
-                        store.getKey(alias, password);
-                        X509Certificate.getInstance(store.getCertificate(alias).getEncoded()).checkValidity();
-                    }
-                }
-                return true;
-            } finally {
-                in.close();
-            }
-        } catch (KeyStoreException e) {
-            keyError(e);
-        } catch (NoSuchAlgorithmException e) {
-            keyError(e);
-        } catch (CertificateException e) {
-            keyError(e);
-        } catch (javax.security.cert.CertificateException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            keyError(e);
-        } catch (UnrecoverableKeyException e) {
-            keyError(e);
-        }
-        return false;
-    }
-
-    private void keyError(Exception e) {
-        error("PKCS12 problem: " + e.getMessage());
-    }
-
-    private void error(String message) {
+    private boolean message(String message) {
         Toast.makeText(getBaseContext(), message, Toast.LENGTH_LONG).show();
+        return false;
     }
 
 
@@ -382,5 +345,34 @@ public class SSLDroidTunnelDetails extends Activity {
             return INVALID_PORT;
         }
     }
-}
 
+    private boolean isValid(TunnelConfig tunnel) {
+        if (tunnel.name.isEmpty()) {
+            return message("Required tunnel name parameter not set up, skipping save");
+        } else if (tunnel.listenPort == NO_PORT) {
+            return message("Required local port parameter not set up, skipping save");
+        } else if (tunnel.listenPort == INVALID_PORT) {
+            return message("Local port parameter has invalid number format");
+        } else if (tunnel.listenPort < 1025 || tunnel.listenPort > 65535) {
+            return message("Local port parameter not in valid range (1025-65535)");
+        } else if (tunnel.targetPort == NO_PORT) {
+            return message("Required remote host parameter not set up, skipping save");
+        } else if (tunnel.targetPort == INVALID_PORT) {
+            return message("Remote port parameter has invalid number format");
+        } else if (tunnel.targetPort < 1 || tunnel.targetPort > 65535) {
+            return message("Remote port parameter not in valid range (1-65535)");
+        } else {
+            for (TunnelConfig other : dbHelper.fetchAllTunnels()) {
+                if (tunnel.listenPort == other.listenPort && tunnel.id != other.id) {
+                    return message("Local port already configured in tunnel '"+ other.name +"', please change...");
+                }
+            }
+            try {
+                new ActiveTunnel(tunnel);
+                return true;
+            } catch (TunnelException e) {
+                return message(e.getMessage());
+            }
+        }
+    }
+}

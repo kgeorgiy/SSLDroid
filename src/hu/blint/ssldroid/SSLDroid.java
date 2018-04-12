@@ -11,7 +11,6 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.IBinder;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -151,7 +150,7 @@ public class SSLDroid extends Service {
                 for (TunnelConfig config : dbHelper.fetchAllTunnels()) {
                     try {
                         tunnels.add(new TcpTunnel(config));
-                    } catch (IOException e) {
+                    } catch (TunnelException e) {
                         Log.d("Error creating tunnel " + config + ": " + e.toString());
                         new AlertDialog.Builder(droid)
                                 .setTitle("SSLDroid encountered a fatal error: " + e.getMessage())

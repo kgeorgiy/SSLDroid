@@ -61,8 +61,23 @@
 				android:layout_height="wrap_content" android:layout_weight="1"
 				android:password="true" android:hint="Not mandatory" />
 		</TableRow>
-		<TableRow android:gravity="center">
-		<Button android:layout_width="fill_parent" android:layout_height="fill_parent" android:gravity="center" android:textAppearance="?android:attr/textAppearanceMedium" android:text="@string/apply" android:id="@+id/tunnel_apply_button"></Button>
-		</TableRow>
+        <TableRow android:gravity="center">
+            <Button
+                android:id="@+id/tunnel_test"
+                android:text="@string/tunnel_test"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="center"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+        </TableRow>
+        <TableRow android:gravity="center">
+            <Button
+                android:id="@+id/tunnel_apply"
+                android:text="@string/tunnel_apply"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:gravity="center"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+        </TableRow>
 	</TableLayout>
 </ScrollView>
