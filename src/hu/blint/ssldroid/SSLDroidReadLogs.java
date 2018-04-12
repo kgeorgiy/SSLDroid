@@ -44,32 +44,25 @@ public class SSLDroidReadLogs extends Activity {
     }
 
     public void refreshLogs() {
-        TextView logcontainer = (TextView) findViewById(R.id.readLogs_text);
-        logcontainer.setText("");
-        Process mLogcatProc = null;
-        BufferedReader reader = null;
+        TextView logs = (TextView) findViewById(R.id.readLogs_text);
+        logs.setText("");
         try {
-            mLogcatProc = Runtime.getRuntime().exec(new String[]
-                                                    {"logcat", "-d", "-v", "time", "-b", "main", "SSLDroid:D SSLDroidGui:D AndroidRuntime *:S" });
+            Process process = Runtime.getRuntime()
+                    .exec(new String[]{"logcat", "-d", "-v", "time", "-b", "main", Log.TAG + ":D AndroidRuntime *:S" });
 
-            reader = new BufferedReader(new InputStreamReader(mLogcatProc.getInputStream()));
+            final BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            try {
+                String separator = System.getProperty("line.separator");
 
-            String line;
-            String separator = System.getProperty("line.separator");
-
-            while ((line = reader.readLine()) != null) {
-                logcontainer.append(line+separator);
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    logs.append(line + separator);
+                }
+            } catch (IOException e) {
+                reader.close();
             }
         } catch (IOException e) {
             Log.d("Logcat problem: " + e.toString());
-        }
-        finally {
-            if (reader != null)
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    Log.d("Logcat problem: "+e.toString());
-                }
         }
         scrollView.post(new Runnable() {
             @Override
