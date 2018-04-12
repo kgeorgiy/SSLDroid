@@ -263,10 +263,10 @@ public class SSLDroidTunnelDetails extends Activity {
 
             if(!doClone){
                 name.setText(tunnel.name);
-                listenPort.setText("" + tunnel.listenPort);
+                listenPort.setText(getString(R.string.tunnel_port_format, tunnel.listenPort));
             }
             targetHost.setText(tunnel.targetHost);
-            targetPort.setText("" + tunnel.targetPort);
+            targetPort.setText(getString(R.string.tunnel_port_format, tunnel.targetPort));
             keyFile.setText(tunnel.keyFile);
             keyPass.setText(tunnel.keyPass);
         }

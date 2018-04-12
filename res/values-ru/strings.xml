@@ -18,6 +18,7 @@
     <string name="tunnel_apply">Применить</string>
     <string name="tunnel_test">Тест</string>
     <string name="tunnel_testing">Тестируется…</string>
+    <string name="tunnel_port_format">%d</string>
 
     <string name="preferences_showNotifications">Показывать уведомления</string>
     <string name="preferences_showNotifications_summary">когда сервис запущен</string>
