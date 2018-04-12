@@ -16,9 +16,9 @@ public class TcpTunnel implements Runnable, Closeable {
     private final ServerSocket ss;
     private final Thread thread;
 
-    TcpTunnel(TunnelConfig config) throws TunnelException {
+    TcpTunnel(TunnelConfig config, int connectionTimeout) throws TunnelException {
         this.config = config;
-        tunnel = new ActiveTunnel(config);
+        tunnel = new ActiveTunnel(config, connectionTimeout);
         try {
             ss = new ServerSocket(config.listenPort, 50);
         } catch (IOException e) {
@@ -57,7 +57,7 @@ public class TcpTunnel implements Runnable, Closeable {
     }
 
     private void run(String fullSessionId, Socket client) throws IOException {
-        SSLSocket server = tunnel.connect(5000);
+        SSLSocket server = tunnel.connect();
 
         log(fullSessionId, "-------------------------------- Tunnelling port "
                 + ss.getLocalSocketAddress() + " to port "

@@ -5,4 +5,9 @@
         android:title="@string/preferences_showNotifications"
         android:summary="@string/preferences_showNotificationsSummary"
         android:defaultValue="true" />
+    <hu.blint.ssldroid.ui.TimeoutPreference
+        android:key="preferences_connectionTimeout"
+        android:title="@string/preferences_connectionTimeout"
+        android:summary="%s"
+        android:defaultValue="5000"/>
 </PreferenceScreen>

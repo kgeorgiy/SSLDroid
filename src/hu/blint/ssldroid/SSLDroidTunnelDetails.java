@@ -25,9 +25,9 @@ import java.util.ListIterator;
 
 import hu.blint.ssldroid.db.SSLDroidDbAdapter;
 import hu.blint.ssldroid.ui.ContextAsyncTask;
+import hu.blint.ssldroid.ui.Settings;
 
 //TODO: cacert + crl should be configurable for the tunnel
-//TODO: test connection button
 
 public class SSLDroidTunnelDetails extends Activity {
     private static final int IS_REACHABLE_TIMEOUT = 5000;
@@ -70,20 +70,18 @@ public class SSLDroidTunnelDetails extends Activity {
         }
     }
 
-    private static class TunnelChecker extends ContextAsyncTask<SSLDroidTunnelDetails, TunnelConfig, Void, String> {
+    private static class TunnelChecker extends ContextAsyncTask<SSLDroidTunnelDetails, ActiveTunnel, Void, String> {
         TunnelChecker(SSLDroidTunnelDetails details) {
             super(details);
         }
 
         @Override
-        protected String doInBackground(SSLDroidTunnelDetails details, TunnelConfig... tunnels) {
+        protected String doInBackground(SSLDroidTunnelDetails details, ActiveTunnel... tunnels) {
             try {
-                new ActiveTunnel(tunnels[0]).connect(5000).close();
+                tunnels[0].connect().close();
                 return "Test success";
             } catch (IOException e) {
                 return "Cannot establish connection: " + e.getMessage();
-            } catch (TunnelException e) {
-                return "Invalid tunnel configuration: " + e.getMessage();
             }
         }
 
@@ -127,8 +125,8 @@ public class SSLDroidTunnelDetails extends Activity {
         testButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TunnelConfig tunnel = parseTunnel();
-                if (isValid(tunnel)) {
+                ActiveTunnel tunnel = isValid(parseTunnel());
+                if (tunnel != null) {
                     setTesting(true);
                     new TunnelChecker(SSLDroidTunnelDetails.this).execute(tunnel);
                 }
@@ -274,9 +272,8 @@ public class SSLDroidTunnelDetails extends Activity {
         }
     }
 
-    private boolean message(String message) {
+    private void message(String message) {
         Toast.makeText(getBaseContext(), message, Toast.LENGTH_LONG).show();
-        return false;
     }
 
 
@@ -346,33 +343,34 @@ public class SSLDroidTunnelDetails extends Activity {
         }
     }
 
-    private boolean isValid(TunnelConfig tunnel) {
+    private ActiveTunnel isValid(TunnelConfig tunnel) {
         if (tunnel.name.isEmpty()) {
-            return message("Required tunnel name parameter not set up, skipping save");
+            message("Required tunnel name parameter not set up, skipping save");
         } else if (tunnel.listenPort == NO_PORT) {
-            return message("Required local port parameter not set up, skipping save");
+            message("Required local port parameter not set up, skipping save");
         } else if (tunnel.listenPort == INVALID_PORT) {
-            return message("Local port parameter has invalid number format");
+            message("Local port parameter has invalid number format");
         } else if (tunnel.listenPort < 1025 || tunnel.listenPort > 65535) {
-            return message("Local port parameter not in valid range (1025-65535)");
+            message("Local port parameter not in valid range (1025-65535)");
         } else if (tunnel.targetPort == NO_PORT) {
-            return message("Required remote host parameter not set up, skipping save");
+            message("Required remote host parameter not set up, skipping save");
         } else if (tunnel.targetPort == INVALID_PORT) {
-            return message("Remote port parameter has invalid number format");
+            message("Remote port parameter has invalid number format");
         } else if (tunnel.targetPort < 1 || tunnel.targetPort > 65535) {
-            return message("Remote port parameter not in valid range (1-65535)");
+            message("Remote port parameter not in valid range (1-65535)");
         } else {
             for (TunnelConfig other : dbHelper.fetchAllTunnels()) {
                 if (tunnel.listenPort == other.listenPort && tunnel.id != other.id) {
-                    return message("Local port already configured in tunnel '"+ other.name +"', please change...");
+                    message("Local port already configured in tunnel '"+ other.name +"', please change...");
+                    return null;
                 }
             }
             try {
-                new ActiveTunnel(tunnel);
-                return true;
+                return new ActiveTunnel(tunnel, Settings.getConnectionTimeout(this));
             } catch (TunnelException e) {
-                return message(e.getMessage());
+                message(e.getMessage());
             }
         }
+        return null;
     }
 }

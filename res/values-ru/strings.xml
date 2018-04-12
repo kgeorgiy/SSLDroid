@@ -29,4 +29,5 @@
     <string name="preferences_showNotifications">Показывать уведомления</string>
     <string name="preferences_showNotificationsSummary">когда сервис запущен</string>
     <string name="main_settings">Настройки</string>
+    <string name="preferences_connectionTimeout">Таймаут соединения (мс)</string>
 </resources>

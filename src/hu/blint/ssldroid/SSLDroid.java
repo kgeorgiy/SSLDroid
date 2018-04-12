@@ -149,7 +149,7 @@ public class SSLDroid extends Service {
                 List<TcpTunnel> tunnels = new ArrayList<TcpTunnel>();
                 for (TunnelConfig config : dbHelper.fetchAllTunnels()) {
                     try {
-                        tunnels.add(new TcpTunnel(config));
+                        tunnels.add(new TcpTunnel(config, Settings.getConnectionTimeout(droid)));
                     } catch (TunnelException e) {
                         Log.d("Error creating tunnel " + config + ": " + e.toString());
                         new AlertDialog.Builder(droid)

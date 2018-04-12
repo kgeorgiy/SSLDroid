@@ -38,9 +38,12 @@ public class ActiveTunnel {
 
     private final TunnelConfig config;
     private final SSLSocketFactory socketFactory;
+    private final int connectionTimeout;
 
-    public ActiveTunnel(TunnelConfig config) throws TunnelException {
+    public ActiveTunnel(TunnelConfig config, int connectionTimeout) throws TunnelException {
         this.config = config;
+        this.connectionTimeout = connectionTimeout;
+
         socketFactory = createSocketFactory();
     }
 
@@ -94,15 +97,11 @@ public class ActiveTunnel {
         }
     }
 
-    public SSLSocket connect(int timeout) throws IOException {
-        Log.d("Connecting");
+    public SSLSocket connect() throws IOException {
         SSLSocket socket = (SSLSocket) socketFactory.createSocket();
-        socket.connect(new InetSocketAddress(config.targetHost, config.targetPort), timeout);
-        Log.d("Socket created");
+        socket.connect(new InetSocketAddress(config.targetHost, config.targetPort), connectionTimeout);
         setSNIHost(socketFactory, socket, config.targetHost);
-        Log.d("Host set");
         socket.startHandshake();
-        Log.d("Handshake done");
         return socket;
     }
 
