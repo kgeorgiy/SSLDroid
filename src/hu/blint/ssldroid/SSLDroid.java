@@ -8,38 +8,23 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.AsyncTask;
 import android.os.IBinder;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import hu.blint.ssldroid.db.SSLDroidDbAdapter;
 
 public class SSLDroid extends Service {
-
     private List<TcpTunnel> tunnels = new ArrayList<TcpTunnel>();
 
     @Override
     public void onCreate() {
-        SSLDroidDbAdapter dbHelper = new SSLDroidDbAdapter(this);
-        try {
-            tunnels.clear();
-            for (TunnelConfig config : dbHelper.fetchAllTunnels()) {
-                try {
-                    tunnels.add(new TcpTunnel(config));
-                } catch (IOException e) {
-                    Log.d("Error creating tunnel " + config + ": " + e.toString());
-                    new AlertDialog.Builder(this)
-                            .setTitle("SSLDroid encountered a fatal error: " + e.getMessage())
-                            .setPositiveButton(android.R.string.ok, null)
-                            .create();
-                }
-            }
-            createNotification(0, true, "SSLDroid is running", "Started and serving "+ tunnels.size()+" tunnels");
-        } finally {
-            dbHelper.close();
-        }
+        new StartTask(this).execute();
 
         //get the version
         PackageInfo info;
@@ -110,5 +95,49 @@ public class SSLDroid extends Service {
 
         NotificationManager notificationManager = getNotificationManager();
         notificationManager.notify(id, notification);
+    }
+
+    public static class StartTask extends AsyncTask<Void, Integer, List<TcpTunnel>> {
+        private WeakReference<SSLDroid> droidRef;
+
+        StartTask(SSLDroid droid) {
+            this.droidRef = new WeakReference<SSLDroid>(droid);
+        }
+
+        @Override
+        protected List<TcpTunnel> doInBackground(Void... voids) {
+            SSLDroid droid = droidRef.get();
+            if (droid == null) {
+                return Collections.emptyList();
+            }
+
+            SSLDroidDbAdapter dbHelper = new SSLDroidDbAdapter(droid);
+            try {
+                List<TcpTunnel> tunnels = new ArrayList<TcpTunnel>();
+                for (TunnelConfig config : dbHelper.fetchAllTunnels()) {
+                    try {
+                        tunnels.add(new TcpTunnel(config));
+                    } catch (IOException e) {
+                        Log.d("Error creating tunnel " + config + ": " + e.toString());
+                        new AlertDialog.Builder(droid)
+                                .setTitle("SSLDroid encountered a fatal error: " + e.getMessage())
+                                .setPositiveButton(android.R.string.ok, null)
+                                .create();
+                    }
+                }
+                droid.tunnels = tunnels;
+                return tunnels;
+            } finally {
+                dbHelper.close();
+            }
+        }
+
+        @Override
+        protected void onPostExecute(List<TcpTunnel> tunnels) {
+            SSLDroid droid = droidRef.get();
+            if (droid != null) {
+                droid.createNotification(0, true, "SSLDroid is running", "Started and serving " + tunnels.size() + " tunnels");
+            }
+        }
     }
 }
