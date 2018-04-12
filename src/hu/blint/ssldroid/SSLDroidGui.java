@@ -52,9 +52,9 @@ public class SSLDroidGui extends ListActivity {
         inflater.inflate(R.menu.main, menu);
 
         final boolean running = SSLDroid.isStarted();
-        menu.findItem(R.id.service_start).setVisible(!running);
-        menu.findItem(R.id.service_stop).setVisible(running);
-        menu.findItem(R.id.service_stop_permanently).setVisible(running);
+        menu.findItem(R.id.mainMenu_startService).setVisible(!running);
+        menu.findItem(R.id.mainMenu_stopService).setVisible(running);
+        menu.findItem(R.id.mainMenu_stopServiceUntilStarted).setVisible(running);
 
         return true;
     }
@@ -72,28 +72,28 @@ public class SSLDroidGui extends ListActivity {
 
     private boolean onSelected(MenuItem item) {
         switch (item.getItemId()) {
-        case R.id.addtunnel:
+        case R.id.mainMenu_addTunnel:
             createTunnel();
             return true;
-        case R.id.service_stop:
+        case R.id.mainMenu_stopService:
             Log.d("Stopping service");
             stopService();
             return true;
-        case R.id.service_stop_permanently:
+        case R.id.mainMenu_stopServiceUntilStarted:
             Log.d("Stopping service until explicitly started");
             dbHelper.setStopStatus();
             stopService();
             return true;
-        case R.id.service_start:
+        case R.id.mainMenu_startService:
             Log.d("Starting service");
             dbHelper.clearStopStatus();
             SSLDroid.start(this);
             invalidateOptionsMenu();
             return true;
-        case R.id.readlogs:
+        case R.id.mainMenu_readLogs:
             readLogs();
             return true;
-        case R.id.settings:
+        case R.id.mainMenu_settings:
             showSettings();
             return true;
         }
@@ -192,8 +192,8 @@ public class SSLDroidGui extends ListActivity {
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
-        menu.add(0, DELETE_ID, 0, R.string.menu_delete);
-        menu.add(0, CLONE_ID, 0, R.string.menu_clone);
+        menu.add(0, DELETE_ID, 0, R.string.tunnelMenu_delete);
+        menu.add(0, CLONE_ID, 0, R.string.tunnelMenu_clone);
     }
     
     @Override

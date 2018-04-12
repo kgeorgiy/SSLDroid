@@ -2,37 +2,37 @@
 <menu
   xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/addtunnel"
-        android:title="@string/add_tunnel"
+        android:id="@+id/mainMenu_addTunnel"
+        android:title="@string/mainMenu_addTunnel"
         android:icon="@android:drawable/ic_menu_add"
         android:enabled="true"
         android:showAsAction="ifRoom"/>
     <item
-        android:id="@+id/service_start"
-        android:title="@string/start_service"
+        android:id="@+id/mainMenu_startService"
+        android:title="@string/mainMenu_startService"
         android:icon="@android:drawable/ic_media_play"
         android:enabled="true"
         android:showAsAction="ifRoom"/>
     <item
-        android:id="@+id/service_stop"
-        android:title="@string/stop_service"
+        android:id="@+id/mainMenu_stopService"
+        android:title="@string/mainMenu_stopService"
         android:icon="@*android:drawable/ic_media_stop"
         android:enabled="true"
         android:showAsAction="ifRoom"/>
     <item
-        android:id="@+id/service_stop_permanently"
-        android:title="@string/stop_service_for_good"
+        android:id="@+id/mainMenu_stopServiceUntilStarted"
+        android:title="@string/mainMenu_stopServiceUntilStarted"
         android:icon="@android:drawable/ic_menu_close_clear_cancel"
         android:enabled="true"/>
     <item
-        android:id="@+id/readlogs"
-        android:title="@string/menu_readlogs"
+        android:id="@+id/mainMenu_readLogs"
+        android:title="@string/mainMenu_readLogs"
         android:icon="@android:drawable/ic_menu_agenda"
         android:enabled="true"/>
     <item
-        android:id="@+id/settings"
+        android:id="@+id/mainMenu_settings"
+        android:title="@string/mainMenu_settings"
         android:icon="@android:drawable/ic_menu_preferences"
-        android:title="@string/main_settings"
         android:enabled="true"
         android:showAsAction="ifRoom"/>
 </menu>
