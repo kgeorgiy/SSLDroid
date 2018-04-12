@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SSLDroid</string>
+    <string name="local_port">Локальный порт</string>
+    <string name="remote_host">Удаленный сервер</string>
+    <string name="remote_port">Удаленный порт</string>
+    <string name="cert_file">Файл сертификата</string>
+    <string name="apply">Применить</string>
+    <string name="pkcspass">Пароль сертификата</string>
+    <string name="connection_name">Название</string>
+    <string name="add_tunnel">Добавить туннель</string>
+    <string name="stop_service">Остановить</string>
+    <string name="stop_service_for_good">Остановить до явного запуска</string>
+    <string name="start_service">Запустить</string>
+    <string name="no_tunnels">Нет сконфигурированных туннелей</string>
+    <string name="menu_delete">Удалить туннель</string>
+    <string name="pkcsfile_pick">Загрузить сертификат с SD карты</string>
+    <string name="alert_sdcard_absent">Отсутствует SD карта</string>
+    <string name="menu_readlogs">Просмотр логов</string>
+    <string name="reading_logs">Просмотр логов</string>
+    <string name="back">Назад</string>
+    <string name="refresh">Обновить</string>
+    <string name="share">Послать</string>
+    <string name="menu_clone">Сделать копию</string>
+    <string name="preferences_showNotifications">Показывать уведомления</string>
+    <string name="preferences_showNotificationsSummary">когда сервис запущен</string>
+    <string name="main_settings">Настройки</string>
+</resources>
