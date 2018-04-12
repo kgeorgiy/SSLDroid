@@ -5,17 +5,20 @@
         android:id="@+id/addtunnel"
         android:title="@string/add_tunnel"
         android:icon="@android:drawable/ic_menu_add"
-        android:enabled="true"/>
+        android:enabled="true"
+        android:showAsAction="ifRoom"/>
     <item
         android:id="@+id/startservice"
         android:title="@string/start_service"
-        android:icon="@android:drawable/ic_menu_manage"
-        android:enabled="true"/>
+        android:icon="@android:drawable/ic_media_play"
+        android:enabled="true"
+        android:showAsAction="ifRoom"/>
     <item
         android:id="@+id/stopservice"
         android:title="@string/stop_service"
-        android:icon="@android:drawable/ic_menu_close_clear_cancel"
-        android:enabled="true"/>
+        android:icon="@*android:drawable/ic_media_stop"
+        android:enabled="true"
+        android:showAsAction="ifRoom"/>
     <item
         android:id="@+id/stopserviceforgood"
         android:title="@string/stop_service_for_good"
