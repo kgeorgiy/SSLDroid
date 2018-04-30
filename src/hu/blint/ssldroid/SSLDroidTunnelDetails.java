@@ -6,8 +6,11 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.io.File;
@@ -19,8 +22,6 @@ import hu.blint.ssldroid.ui.ContextAsyncTask;
 import hu.blint.ssldroid.ui.FileChooser;
 import hu.blint.ssldroid.ui.Settings;
 
-//TODO: cacert + crl should be configurable for the tunnel
-
 public class SSLDroidTunnelDetails extends Activity {
     private static final int IS_REACHABLE_TIMEOUT = 5000;
 
@@ -30,10 +31,6 @@ public class SSLDroidTunnelDetails extends Activity {
     public static final String ROW_ID = "rowId";
     public static final String DO_CLONE = "doClone";
     public static final int NO_ROW_ID = -1;
-
-    private Button testButton;
-    private Button applyButton;
-    private FileChooser fileChooser;
 
     private static class HostnameChecker extends ContextAsyncTask<SSLDroidTunnelDetails, String, Void, Boolean> {
         HostnameChecker(SSLDroidTunnelDetails details) {
@@ -91,6 +88,14 @@ public class SSLDroidTunnelDetails extends Activity {
     private EditText targetPort;
     private EditText keyFile;
     private EditText keyPass;
+    private EditText trustFile;
+    private EditText trustPass;
+    private Spinner trustType;
+    private Button testButton;
+    private Button applyButton;
+    private View trustFileRow;
+    private View trustPassRow;
+
     private long rowId = NO_ROW_ID;
     private Boolean doClone = false;
     private SSLDroidDbAdapter dbHelper;
@@ -126,25 +131,38 @@ public class SSLDroidTunnelDetails extends Activity {
             }
         });
 
-        fileChooser = new FileChooser(getString(R.string.tunnel_pickFile_dialogTitle), this, new FileChooser.Listener() {
-            @Override
-            public void fileChosen(File file) {
-                keyFile.setText(file.getAbsolutePath());
-                keyPass.requestFocus();
-            }
-        });
-
         name = findEditTextById(R.id.tunnel_name);
         listenPort = findEditTextById(R.id.tunnel_localPort);
         targetHost = findEditTextById(R.id.tunnel_remoteHost);
         targetPort = findEditTextById(R.id.tunnel_remotePort);
         keyFile = findEditTextById(R.id.tunnel_certFile);
         keyPass = findEditTextById(R.id.tunnel_certPass);
-        Button pickFile = (Button) findViewById(R.id.tunnel_pickFile);
+        trustType = (Spinner) findViewById(R.id.tunnel_trustType);
+        trustFile = findEditTextById(R.id.tunnel_trustFile);
+        trustPass = findEditTextById(R.id.tunnel_trustPass);
 
-        pickFile.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View view) {
-                fileChooser.pickFileSimple();
+
+        trustFileRow = findViewById(R.id.tunnel_trustFile_row);
+        trustPassRow = findViewById(R.id.tunnel_trustPass_row);
+
+        setFileChooser(R.id.tunnel_pickKeyFile, keyFile, keyPass);
+        setFileChooser(R.id.tunnel_pickTrustFile, trustFile, trustPass);
+
+        ArrayAdapter<String> trustTypes = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item);
+        trustTypes.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        for (TrustType type : TrustType.values()) {
+            trustTypes.add(getString(type.getId()));
+        }
+        trustType.setAdapter(trustTypes);
+        trustType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                updateVisibility();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Ignore
             }
         });
 
@@ -155,6 +173,22 @@ public class SSLDroidTunnelDetails extends Activity {
             doClone = extras.getBoolean(DO_CLONE, false);
         }
         populateFields();
+    }
+
+    private void setFileChooser(int id, final EditText value, final EditText focus) {
+        final FileChooser fileChooser = new FileChooser(getString(R.string.tunnel_pickFile_dialogTitle), this, new FileChooser.Listener() {
+            @Override
+            public void fileChosen(File file) {
+                value.setText(file.getAbsolutePath());
+                focus.requestFocus();
+            }
+        });
+
+        findViewById(id).setOnClickListener(new View.OnClickListener() {
+            public void onClick(View view) {
+                fileChooser.pickFileSimple();
+            }
+        });
     }
 
     private void setTesting(boolean testing) {
@@ -179,7 +213,20 @@ public class SSLDroidTunnelDetails extends Activity {
             targetPort.setText(getString(R.string.tunnel_port_format, tunnel.targetPort));
             keyFile.setText(tunnel.keyFile);
             keyPass.setText(tunnel.keyPass);
+
+            trustType.setSelection(tunnel.trustType.ordinal());
+            trustFile.setText(tunnel.trustFile);
+            trustPass.setText(tunnel.trustPass);
+        } else {
+            trustType.setSelection(0);
         }
+        updateVisibility();
+    }
+
+    private void updateVisibility() {
+        final int trustVisibility = trustType.getSelectedItemPosition() == TrustType.CUSTOM.ordinal() ? View.VISIBLE : View.GONE;
+        trustFileRow.setVisibility(trustVisibility);
+        trustPassRow.setVisibility(trustVisibility);
     }
 
     private void message(String message) {
@@ -237,7 +284,10 @@ public class SSLDroidTunnelDetails extends Activity {
                 targetHost.getText().toString(),
                 parsePort(targetPort.getText().toString()),
                 keyFile.getText().toString(),
-                keyPass.getText().toString()
+                keyPass.getText().toString(),
+                TrustType.values()[trustType.getSelectedItemPosition()],
+                trustFile.getText().toString(),
+                trustPass.getText().toString()
         );
     }
 

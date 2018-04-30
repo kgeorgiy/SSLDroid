@@ -17,6 +17,14 @@
     <string name="tunnel_pickFile_dialogTitle">Загрузить сертификат с SD карты</string>
     <string name="tunnel_certPass">Пароль PKCS12</string>
     <string name="tunnel_certPass_hint">Не обязательный</string>
+    <string name="tunnel_trustType">Сертификат сервера</string>
+    <string name="tunnel_trustType_all">Без проверки</string>
+    <string name="tunnel_trustType_valid">Корректный</string>
+    <string name="tunnel_trustType_custom">Самоподписанный</string>
+    <string name="tunnel_trustFile">Файл PKCS12</string>
+    <string name="tunnel_trustFile_hint">server.p12</string>
+    <string name="tunnel_trustPass">Пароль PKCS12</string>
+    <string name="tunnel_trustPass_hint">Не обязательный</string>
     <string name="tunnel_apply">Применить</string>
     <string name="tunnel_test">Тест</string>
     <string name="tunnel_testing">Тестируется…</string>

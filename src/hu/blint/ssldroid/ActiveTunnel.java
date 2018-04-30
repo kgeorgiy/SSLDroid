@@ -9,32 +9,14 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 public class ActiveTunnel {
-    // Create a trust manager that does not validate certificate chains
-    // TODO: handle this somehow properly (popup if cert is untrusted?)
-    // TODO: cacert + crl should be configurable
-    private static final TrustManager[] TRUST_ALL_CERTS = new TrustManager[] {
-            new X509TrustManager() {
-                public X509Certificate[] getAcceptedIssuers() {
-                    return null;
-                }
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                }
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                }
-            }
-    };
-
     private final TunnelConfig config;
     private final SSLSocketFactory socketFactory;
     private final int connectionTimeout;
@@ -46,7 +28,7 @@ public class ActiveTunnel {
         socketFactory = createSocketFactory();
     }
 
-    private static KeyStore createKeyStore(String keyFile, String keyPass) throws TunnelException {
+    public static KeyStore createKeyStore(String keyFile, String keyPass) throws TunnelException {
         try {
             FileInputStream stream = new FileInputStream(keyFile);
             try {
@@ -76,7 +58,8 @@ public class ActiveTunnel {
             keyManagerFactory.init(createKeyStore(config.keyFile, config.keyPass), config.keyPass.toCharArray());
             return keyManagerFactory.getKeyManagers();
         } catch (NoSuchAlgorithmException e) {
-            throw new TunnelException("X509 not supported on this system", e);
+            e.printStackTrace();
+            throw new TunnelException("X509 not supported on this system: " + e, e);
         } catch (KeyStoreException e) {
             throw new TunnelException("Error setting up keystore", e);
         } catch (UnrecoverableKeyException e) {
@@ -87,7 +70,7 @@ public class ActiveTunnel {
     private SSLSocketFactory createSocketFactory() throws TunnelException {
         try {
             SSLContext context = SSLContext.getInstance("TLS");
-            context.init(createKeyManagers(), TRUST_ALL_CERTS, null);
+            context.init(createKeyManagers(), config.trustType.getTrustManagers(config.trustFile, config.trustPass), null);
             return context.getSocketFactory();
         } catch (NoSuchAlgorithmException e) {
             throw new TunnelException("TLS not supported on this system", e);

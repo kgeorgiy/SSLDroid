@@ -89,7 +89,7 @@
                 android:inputType="textEmailAddress" />
 
             <Button
-                android:id="@+id/tunnel_pickFile"
+                android:id="@+id/tunnel_pickKeyFile"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/tunnel_pickFile" />
@@ -108,6 +108,58 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="@string/tunnel_certPass_hint"
+                android:inputType="textPassword" />
+        </TableRow>
+        <TableRow>
+            <TextView
+                android:text="@string/tunnel_trustType"
+                android:paddingStart="0dip"
+                android:paddingEnd="10dip"
+                android:gravity="end|center_vertical"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <Spinner
+                android:id="@+id/tunnel_trustType"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+        </TableRow>
+        <TableRow android:id="@+id/tunnel_trustFile_row">
+            <TextView
+                android:text="@string/tunnel_trustFile"
+                android:gravity="end|center_vertical"
+                android:paddingStart="0dip"
+                android:paddingEnd="10dip"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <EditText
+                android:id="@+id/tunnel_trustFile"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/tunnel_trustFile_hint"
+                android:inputType="textEmailAddress" />
+
+            <Button
+                android:id="@+id/tunnel_pickTrustFile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/tunnel_pickFile" />
+        </TableRow>
+        <TableRow android:id="@+id/tunnel_trustPass_row">
+            <TextView
+                android:text="@string/tunnel_trustPass"
+                android:paddingStart="0dip"
+                android:paddingEnd="10dip"
+                android:gravity="end|center_vertical"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <EditText
+                android:id="@+id/tunnel_trustPass"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/tunnel_trustPass_hint"
                 android:inputType="textPassword" />
         </TableRow>
         <TableRow android:gravity="center">

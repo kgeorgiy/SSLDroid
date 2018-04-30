@@ -10,11 +10,12 @@ import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 
+import hu.blint.ssldroid.TrustType;
 import hu.blint.ssldroid.TunnelConfig;
 
 public class SSLDroidDbAdapter implements Closeable {
     // Database fields
-    private static final String TUNNELS_TABLE = "tunnels";
+    public static final String TUNNELS_TABLE = "tunnels";
     private static final String TUNNEL_ROW_ID = "_id";
     private static final String TUNNEL_NAME = "name";
     private static final String TUNNEL_LOCAL_PORT = "localport";
@@ -22,6 +23,9 @@ public class SSLDroidDbAdapter implements Closeable {
     private static final String TUNNEL_REMOTE_PORT = "remoteport";
     private static final String TUNNEL_KEY_FILE = "pkcsfile";
     private static final String TUNNEL_KEY_PASS = "pkcspass";
+    public static final String TUNNEL_TRUST_TYPE = "trust_type";
+    public static final String TUNNEL_TRUST_FILE = "trust_file";
+    public static final String TUNNEL_TRUST_PASS = "trust_pass";
 
     private static final String STATUS_TABLE = "status";
     private static final String KEY_STATUS_NAME = "name";
@@ -88,7 +92,8 @@ public class SSLDroidDbAdapter implements Closeable {
     private Cursor queryTunnel(Long rowId) {
         return query(TUNNELS_TABLE, whereTunnel(rowId),
                 TUNNEL_ROW_ID, TUNNEL_NAME, TUNNEL_LOCAL_PORT, TUNNEL_REMOTE_HOST, TUNNEL_REMOTE_PORT,
-                TUNNEL_KEY_FILE, TUNNEL_KEY_PASS);
+                TUNNEL_KEY_FILE, TUNNEL_KEY_PASS,
+                TUNNEL_TRUST_TYPE, TUNNEL_TRUST_FILE, TUNNEL_TRUST_PASS);
     }
 
     private long getLong(Cursor cursor, String columnName) {
@@ -101,6 +106,11 @@ public class SSLDroidDbAdapter implements Closeable {
 
     private String getString(Cursor cursor, String column) {
         return cursor.getString(cursor.getColumnIndexOrThrow(column));
+    }
+
+    private String getString(Cursor cursor, String column, String def) {
+        final String value = cursor.getString(cursor.getColumnIndexOrThrow(column));
+        return value != null ? value : def;
     }
 
     private boolean getStatus(String status) {
@@ -156,7 +166,10 @@ public class SSLDroidDbAdapter implements Closeable {
                 getString(cursor, SSLDroidDbAdapter.TUNNEL_REMOTE_HOST),
                 getInt(cursor, SSLDroidDbAdapter.TUNNEL_REMOTE_PORT),
                 getString(cursor, SSLDroidDbAdapter.TUNNEL_KEY_FILE),
-                getString(cursor, SSLDroidDbAdapter.TUNNEL_KEY_PASS)
+                getString(cursor, SSLDroidDbAdapter.TUNNEL_KEY_PASS),
+                TrustType.valueOf(getString(cursor, SSLDroidDbAdapter.TUNNEL_TRUST_TYPE, TrustType.ALL.name())),
+                getString(cursor, SSLDroidDbAdapter.TUNNEL_TRUST_FILE, ""),
+                getString(cursor, SSLDroidDbAdapter.TUNNEL_TRUST_PASS, "")
         );
     }
 
@@ -168,8 +181,9 @@ public class SSLDroidDbAdapter implements Closeable {
         values.put(TUNNEL_REMOTE_PORT, tunnel.targetPort);
         values.put(TUNNEL_KEY_FILE, tunnel.keyFile);
         values.put(TUNNEL_KEY_PASS, tunnel.keyPass);
+        values.put(TUNNEL_TRUST_TYPE, tunnel.trustType.name());
+        values.put(TUNNEL_TRUST_FILE, tunnel.trustFile);
+        values.put(TUNNEL_TRUST_PASS, tunnel.trustPass);
         return values;
     }
 }
-
-
