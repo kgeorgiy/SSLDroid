@@ -17,7 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 
-import hu.blint.ssldroid.db.SSLDroidDbAdapter;
+import hu.blint.ssldroid.db.SSLDroidDb;
 import hu.blint.ssldroid.ui.ContextAsyncTask;
 import hu.blint.ssldroid.ui.FileChooser;
 import hu.blint.ssldroid.ui.Settings;
@@ -98,12 +98,12 @@ public class SSLDroidTunnelDetails extends Activity {
 
     private long rowId = NO_ROW_ID;
     private Boolean doClone = false;
-    private SSLDroidDbAdapter dbHelper;
+    private SSLDroidDb db;
 
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
-        dbHelper = new SSLDroidDbAdapter(this);
+        db = new SSLDroidDb(this);
         setContentView(R.layout.tunnel_details);
 
         applyButton = (Button) findViewById(R.id.tunnel_apply);
@@ -203,7 +203,7 @@ public class SSLDroidTunnelDetails extends Activity {
 
     private void populateFields() {
         if (rowId != NO_ROW_ID) {
-            final TunnelConfig tunnel = dbHelper.fetchTunnel(rowId);
+            final TunnelConfig tunnel = db.tunnels.read(rowId);
 
             if(!doClone){
                 name.setText(tunnel.name);
@@ -260,12 +260,12 @@ public class SSLDroidTunnelDetails extends Activity {
         }
 
         if (rowId == NO_ROW_ID || doClone) {
-            long id = dbHelper.createTunnel(tunnel);
+            long id = db.tunnels.create(tunnel);
             if (id > 0) {
                 rowId = id;
             }
         } else {
-            dbHelper.updateTunnel(tunnel);
+            db.tunnels.update(tunnel.id, tunnel);
         }
         Log.d("Saving settings...");
 
@@ -318,7 +318,7 @@ public class SSLDroidTunnelDetails extends Activity {
         } else if (tunnel.targetPort < 1 || tunnel.targetPort > 65535) {
             message("Remote port parameter not in valid range (1-65535)");
         } else {
-            for (TunnelConfig other : dbHelper.fetchAllTunnels()) {
+            for (TunnelConfig other : db.tunnels.readAll()) {
                 if (tunnel.listenPort == other.listenPort && tunnel.id != other.id) {
                     message("Local port already configured in tunnel '"+ other.name +"', please change...");
                     return null;

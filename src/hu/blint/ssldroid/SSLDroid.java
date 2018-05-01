@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import hu.blint.ssldroid.db.SSLDroidDbAdapter;
+import hu.blint.ssldroid.db.SSLDroidDb;
 import hu.blint.ssldroid.ui.ContextAsyncTask;
 import hu.blint.ssldroid.ui.Settings;
 
@@ -155,10 +156,10 @@ public class SSLDroid extends Service {
 
         @Override
         protected List<TcpTunnel> doInBackground(SSLDroid droid, Void... voids) {
-            SSLDroidDbAdapter dbHelper = new SSLDroidDbAdapter(droid);
+            final SSLDroidDb db = new SSLDroidDb(droid);
             try {
                 List<TcpTunnel> tunnels = new ArrayList<TcpTunnel>();
-                for (TunnelConfig config : dbHelper.fetchAllTunnels()) {
+                for (TunnelConfig config : db.tunnels.readAll()) {
                     try {
                         tunnels.add(new TcpTunnel(config, Settings.getConnectionTimeout(droid)));
                     } catch (TunnelException e) {
@@ -168,7 +169,7 @@ public class SSLDroid extends Service {
                 }
                 return tunnels;
             } finally {
-                dbHelper.close();
+                db.close();
             }
         }
 

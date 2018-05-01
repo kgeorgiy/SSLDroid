@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import hu.blint.ssldroid.db.SSLDroidDbAdapter;
+import hu.blint.ssldroid.db.SSLDroidDb;
 import hu.blint.ssldroid.ui.Settings;
 import hu.blint.ssldroid.ui.SettingsActivity;
 
@@ -33,6 +34,7 @@ public class SSLDroidGui extends ListActivity {
     public static final String[] NAMES = {NAME, INFO};
     public static final int[] IDS = {R.id.tunnelList_name, R.id.tunnelList_info};
 
+    private SSLDroidDb db;
     private SSLDroidDbAdapter dbHelper;
 
     /** Called when the activity is first created. */
@@ -41,6 +43,7 @@ public class SSLDroidGui extends ListActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.tunnel_list);
         this.getListView().setDividerHeight(2);
+        db = new SSLDroidDb(this);
         dbHelper = new SSLDroidDbAdapter(this);
         fillData();
         registerForContextMenu(getListView());
@@ -110,7 +113,7 @@ public class SSLDroidGui extends ListActivity {
         AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
         switch (item.getItemId()) {
             case DELETE_ID:
-                dbHelper.deleteTunnel(info.id);
+                db.tunnels.delete(info.id);
                 fillData();
                 return true;
             case CLONE_ID:
@@ -165,9 +168,9 @@ public class SSLDroidGui extends ListActivity {
 
     private void fillData() {
         final List<Long> ids = new ArrayList<Long>();
-        List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
-        for (TunnelConfig tunnel : dbHelper.fetchAllTunnels()  ) {
-            Map<String, Object> item = new HashMap<String, Object>();
+        final List<Map<String, Object>> items = new ArrayList<Map<String, Object>>();
+        for (TunnelConfig tunnel : db.tunnels.readAll()) {
+            final Map<String, Object> item = new HashMap<String, Object>();
             item.put(NAME, tunnel.name);
             item.put(INFO, tunnel.listenPort + ":" + tunnel.targetHost + ":" + tunnel.targetPort);
             items.add(item);
@@ -198,7 +201,8 @@ public class SSLDroidGui extends ListActivity {
     
     @Override
     public void onDestroy (){
-	dbHelper.close();
-	super.onDestroy();
+        db.close();
+        dbHelper.close();
+        super.onDestroy();
     }
 }

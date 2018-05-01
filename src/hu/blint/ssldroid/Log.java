@@ -10,4 +10,8 @@ public class Log {
     public static void w(String message) {
         android.util.Log.w(TAG, message);
     }
+
+    public static void i(String message) {
+        android.util.Log.i(TAG, message);
+    }
 }
