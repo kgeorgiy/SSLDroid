@@ -15,6 +15,7 @@
         android:label="@string/app_name"
         android:icon="@drawable/icon"
         android:allowBackup="true"
+        android:theme="@android:style/Theme.Holo.Light"
     >
         <activity android:name="SSLDroidGui" android:label="@string/app_name">
             <intent-filter>
