@@ -1,6 +1,5 @@
 package hu.blint.ssldroid;
 
-import android.app.AlertDialog;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -137,7 +136,19 @@ public class SSLDroid extends Service {
         notificationManager.notify(id, notification);
     }
 
+    private void onStarted(List<TcpTunnel> tunnels, List<String> errors) {
+        this.tunnels = tunnels;
+        createNotification(
+                0,
+                true,
+                "SSLDroid is running",
+                "Started and serving " + tunnels.size() + " tunnels (" + errors.size() + " errors)"
+        );
+    }
+
     public static class StartTask extends ContextAsyncTask<SSLDroid, Void, Integer, List<TcpTunnel>> {
+        private final List<String> errors = new ArrayList<String>();
+
         StartTask(SSLDroid droid) {
             super(droid);
         }
@@ -151,14 +162,10 @@ public class SSLDroid extends Service {
                     try {
                         tunnels.add(new TcpTunnel(config, Settings.getConnectionTimeout(droid)));
                     } catch (TunnelException e) {
+                        errors.add("Error creating tunnel " + config + ": " + e.toString());
                         Log.d("Error creating tunnel " + config + ": " + e.toString());
-                        new AlertDialog.Builder(droid)
-                                .setTitle("SSLDroid encountered a fatal error: " + e.getMessage())
-                                .setPositiveButton(android.R.string.ok, null)
-                                .create();
                     }
                 }
-                droid.tunnels = tunnels;
                 return tunnels;
             } finally {
                 dbHelper.close();
@@ -167,7 +174,7 @@ public class SSLDroid extends Service {
 
         @Override
         protected void onPostExecute(SSLDroid droid, List<TcpTunnel> tunnels) {
-            droid.createNotification(0, true, "SSLDroid is running", "Started and serving " + tunnels.size() + " tunnels");
+            droid.onStarted(tunnels, errors);
         }
     }
 }
